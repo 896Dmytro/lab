@@ -1,30 +1,56 @@
-name: SonarCloud
+name: SonarCloud analysis
+
 on:
   push:
-    branches: [ master ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "master" ]
+  workflow_dispatch:
+
+permissions:
+  pull-requests: read # allows SonarCloud to decorate PRs with analysis results
+
 jobs:
-  analyze:
-    name: Analyze
-    runs-on: windows-latest
+  sonar-check:
+    name: Sonar Check
+    runs-on: windows-latest   # безпечно для будь-яких .NET проектів
     steps:
       - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - uses: actions/setup-dotnet@v4
         with:
-          fetch-depth: 0
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
+          dotnet-version: '8.0.x'
+
+      # 1) BEGIN: SonarScanner for .NET
+      - name: SonarScanner Begin
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+          echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
+          dotnet sonarscanner begin `
+          /k:"896Dmytro_lab" `
+          /o:"896dmytro" `
+          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+          /d:sonar.host.url="https://sonarcloud.io" `
+          /d:sonar.cs.opencover.reportsPaths="**/coverage.xml" `
+          /d:sonar.cpd.cs.minimumTokens=40 `
+          /d:sonar.cpd.cs.minimumLines=5 `
+          /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml `
+          /d:sonar.qualitygate.wait=true
+        shell: pwsh
+      # 2) BUILD & TEST
+      - name: Restore
+        run: dotnet restore NetSdrClient.sln
       - name: Build
-        run: dotnet build NetSdrClient.sln --configuration Release
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: .
-          args: >
-            -Dsonar.projectKey=896Dmytro_lab
-            -Dsonar.organization=896dmytro
+        run: dotnet build NetSdrClient.sln -c Release --no-restore
+      #- name: Tests with coverage (OpenCover)
+      #  run: |
+      #    dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
+      #      /p:CollectCoverage=true `
+      #      /p:CoverletOutput=TestResults/coverage.xml `
+      #      /p:CoverletOutputFormat=opencover
+      #  shell: pwsh
+      # 3) END: SonarScanner
+      - name: SonarScanner End
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        shell: pwsh
