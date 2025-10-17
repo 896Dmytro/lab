@@ -1,34 +1,36 @@
 name: Code Coverage
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  test-with-coverage:
-    runs-on: ubuntu-latest
+  test-with-coverage:
+    runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v3
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 8.0.x
-        
-    - name: Restore dependencies
-      run: dotnet restore NetSdrClient.sln
-      
-    - name: Build
-      run: dotnet build NetSdrClient.sln --no-restore --configuration Release
-      
-    - name: Tests with coverage
-      run: |
-        dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj \
-          -c Release \
-          --no-build \
-          /p:CollectCoverage=true \
-          /p:CoverletOutput=TestResults/ \
-          /p:CoverletOutputFormat=opencover
+    steps:
+    - uses: actions/checkout@v3
+      with: # <-- Эту строку
+        lfs: true # <-- И эту строку
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+        
+    - name: Restore dependencies
+      run: dotnet restore NetSdrClient.sln
+      
+    - name: Build
+      run: dotnet build NetSdrClient.sln --no-restore --configuration Release
+      
+    - name: Tests with coverage
+      run: |
+        dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj \
+          -c Release \
+          --no-build \
+          /p:CollectCoverage=true \
+          /p:CoverletOutput=TestResults/ \
+          /p:CoverletOutputFormat=opencover
