@@ -41,4 +41,45 @@ public class FixedMessageTests
         var payload = new byte[] { 0x01, 0x02, 0x03 };
         
         // Act
-        var message = NetSdrMessageHelper.CreateDataMessage
+        var message = NetSdrMessageHelper.CreateDataMessage(payload);
+        
+        // Assert
+        Assert.NotNull(message);
+        Assert.Equal(payload.Length, message.Header.DataItemCount);
+    }
+    
+    [Fact]
+    public void MessageHeader_DefaultConstructor_ShouldInitializeCorrectly()
+    {
+        // Arrange & Act
+        var header = new MessageHeader();
+        
+        // Assert
+        Assert.Equal(MessageType.Command, header.MessageType);
+        Assert.Equal(0, header.DataItemCount);
+    }
+    
+    [Fact]
+    public void CreateDisconnectMessage_ShouldCreateValidMessage()
+    {
+        // Act
+        var message = NetSdrMessageHelper.CreateDisconnectMessage();
+        
+        // Assert
+        Assert.NotNull(message);
+        Assert.Equal(MessageType.Command, message.Header.MessageType);
+    }
+    
+    [Fact]
+    public void MessageHeader_Properties_CanBeSet()
+    {
+        // Arrange & Act
+        var header = new MessageHeader();
+        header.MessageType = MessageType.Data;
+        header.DataItemCount = 5;
+        
+        // Assert
+        Assert.Equal(MessageType.Data, header.MessageType);
+        Assert.Equal(5, header.DataItemCount);
+    }
+}
