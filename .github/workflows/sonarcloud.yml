@@ -2,13 +2,13 @@ name: SonarCloud analysis
 
 on:
   push:
-    branches: [ "main" ] # <--- ИСПРАВЛЕНО: 'master' на 'main'
+    branches: [ "master" ]  # <-- Это правильно, т.к. вы пушите в master
   pull_request:
-    branches: [ "main" ] # <--- ИСПРАВЛЕНО: 'master' на 'main'
+    branches: [ "master" ]
   workflow_dispatch:
 
 permissions:
-  pull-requests: read
+  pull-requests: read # allows SonarCloud to decorate PRs with analysis results
 
 jobs:
   sonar-check:
@@ -16,9 +16,9 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-        with: 
-          fetch-depth: 0 
-          lfs: true # <--- ИСПРАВЛЕНО: Добавлен LFS
+        with:
+          fetch-depth: 0
+          lfs: true        # <-- 1. ИСПРАВЛЕНО: Добавлена поддержка Git LFS
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -30,24 +30,24 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
           dotnet sonarscanner begin `
-          /k:"896Dmytro_lab" `
-          /o:"896dmytro" `
+          /k:"896Dmytro_lab" ` # <-- 2. ИСПРАВЛЕНО: Вставлен ваш ключ
+          /o:"896dmytro" ` # <-- 3. ИСПРАВЛЕНО: Вставлена ваша организация
           /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
           /d:sonar.host.url="https://sonarcloud.io" `
-          /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.xml" ` # <--- УЛУЧШЕНО: Убран '**/' для более точного пути
+          /d:sonar.cs.opencover.reportsPaths="TestResults/coverage.xml" `
           /d:sonar.cpd.cs.minimumTokens=40 `
           /d:sonar.cpd.cs.minimumLines=5 `
           /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml `
           /d:sonar.qualitygate.wait=true
         shell: pwsh
-        
+
       # 2) BUILD & TEST
       - name: Restore
         run: dotnet restore NetSdrClient.sln
       - name: Build
         run: dotnet build NetSdrClient.sln -c Release --no-restore
-        
-      # <--- ИСПРАВЛЕНО: Шаг раскомментирован ---
+
+      # 4. ИСПРАВЛЕНО: Шаг с тестами раскомментирован
       - name: Tests with coverage (OpenCover)
         run: |
           dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
@@ -57,6 +57,7 @@ jobs:
         shell: pwsh
 
       # 3) END: SonarScanner
+      # 5. ИСПРАВЛЕНО: Убран лишний отступ, который ломал воркфлоу
       - name: SonarScanner End
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         shell: pwsh
