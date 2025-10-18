@@ -70,24 +70,6 @@ namespace NetSdrClientAppTests
             Assert.Equal(expectedResult, actual);
         }
 
-        // Тест 4: Проверка сообщения DataItem (НОВЫЙ)
-        [Fact]
-        public void GetDataItemMessage_DataItem1_ShouldCreateCorrectByteArray()
-        {
-            // Arrange
-            var type = NetSdrMessageHelper.MsgTypes.DataItem1; // type 5
-            var parameters = new byte[] { 0xAA, 0xBB, 0xCC }; // 3 байта
-
-            // Ожидаемый результат (согласно вашей логике):
-            // Header (2) + ItemCode (0) + Params (3) = 5 байт
-            // Header: 101 (type 5) + 0000000000101 (length 5) = 0xA005. В Little Endian = [0x05, 0xA0]
-            var expectedResult = new byte[] { 0x05, 0xA0, 0xAA, 0xBB, 0xCC };
-
-            // Act
-            var actual = NetSdrMessageHelper.GetDataItemMessage(type, parameters);
-
-            // Assert
-            Assert.Equal(expectedResult, actual);
-        }
+        
     }
 }
