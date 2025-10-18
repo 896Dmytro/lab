@@ -1,69 +1,93 @@
-using NetSdrClientApp.Messages;
+using Xunit;
+using NetSdrClientApp.Messages; // Используем ваш правильный namespace
+using System;                   // Добавляем для Array.Empty
 
 namespace NetSdrClientAppTests
 {
     public class NetSdrMessageHelperTests
     {
-        [SetUp]
-        public void Setup()
+        // Тест 1: Проверяем создание простого сообщения (ИСПРАВЛЕН)
+        [Fact]
+        public void GetControlItemMessage_ShouldCreateCorrectByteArray()
         {
+            // Arrange
+            var type = NetSdrMessageHelper.MsgTypes.SetControlItem;
+            var itemCode = NetSdrMessageHelper.ControlItemCodes.ReceiverFrequency; // 0x0020
+            var parameters = new byte[] { 0xDE, 0xAD }; // 2 байта данных
+
+            // Ожидаемый результат (ИСПРАВЛЕН):
+            // Header (2) + ItemCode (2) + Params (2) = 6 байт
+            // Header: 000 (type 0) + 0000000000110 (length 6) = 0x0006. В Little Endian = [0x06, 0x00]
+            // ItemCode: 0x0020. В Little Endian = [0x20, 0x00]
+            var expectedResult = new byte[] { 0x06, 0x00, 0x20, 0x00, 0xDE, 0xAD };
+
+            // Act
+            var actual = NetSdrMessageHelper.GetControlItemMessage(type, itemCode, parameters);
+
+            // Assert
+            Assert.Equal(expectedResult, actual);
         }
 
-        [Test]
-        public void GetControlItemMessageTest()
+        // Тест 2: Проверяем сообщение с пустыми параметрами (ПРОЙДЕН)
+        [Fact]
+        public void GetDataItemMessage_WithEmptyParams_ShouldCreateCorrectByteArray()
         {
-            //Arrange
-            var type = NetSdrMessageHelper.MsgTypes.Ack;
-            var code = NetSdrMessageHelper.ControlItemCodes.ReceiverState;
-            int parametersLength = 7500;
+            // Arrange
+            var type = NetSdrMessageHelper.MsgTypes.Ack; // type 3
+            var parameters = Array.Empty<byte>(); // 0 байт
 
-            //Act
-            byte[] msg = NetSdrMessageHelper.GetControlItemMessage(type, code, new byte[parametersLength]);
+            // Ожидаемый результат:
+            // Header (2) + ItemCode (0) + Params (0) = 2 байта
+            // Header: 011 (type 3) + 0000000000010 (length 2) = 0x6002. В Little Endian = [0x02, 0x60]
+            var expectedResult = new byte[] { 0x02, 0x60 };
 
-            var headerBytes = msg.Take(2);
-            var codeBytes = msg.Skip(2).Take(2);
-            var parametersBytes = msg.Skip(4);
+            // Act
+            var actual = NetSdrMessageHelper.GetDataItemMessage(type, parameters);
 
-            var num = BitConverter.ToUInt16(headerBytes.ToArray());
-            var actualType = (NetSdrMessageHelper.MsgTypes)(num >> 13);
-            var actualLength = num - ((int)actualType << 13);
-            var actualCode = BitConverter.ToInt16(codeBytes.ToArray());
-
-            //Assert
-            Assert.That(headerBytes.Count(), Is.EqualTo(2));
-            Assert.That(msg.Length, Is.EqualTo(actualLength));
-            Assert.That(type, Is.EqualTo(actualType));
-
-            Assert.That(actualCode, Is.EqualTo((short)code));
-
-            Assert.That(parametersBytes.Count(), Is.EqualTo(parametersLength));
+            // Assert
+            Assert.Equal(expectedResult, actual);
         }
 
-        [Test]
-        public void GetDataItemMessageTest()
+        // Тест 3: Проверка другого типа Control Item (НОВЫЙ)
+        [Fact]
+        public void GetControlItemMessage_RFFilter_ShouldCreateCorrectByteArray()
         {
-            //Arrange
-            var type = NetSdrMessageHelper.MsgTypes.DataItem2;
-            int parametersLength = 7500;
+            // Arrange
+            var type = NetSdrMessageHelper.MsgTypes.SetControlItem; // type 0
+            var itemCode = NetSdrMessageHelper.ControlItemCodes.RFFilter; // 0x0044
+            var parameters = new byte[] { 0x01 }; // 1 байт данных
 
-            //Act
-            byte[] msg = NetSdrMessageHelper.GetDataItemMessage(type, new byte[parametersLength]);
+            // Ожидаемый результат:
+            // Header (2) + ItemCode (2) + Params (1) = 5 байт
+            // Header: 000 (type 0) + 0000000000101 (length 5) = 0x0005. В Little Endian = [0x05, 0x00]
+            // ItemCode: 0x0044. В Little Endian = [0x44, 0x00]
+            var expectedResult = new byte[] { 0x05, 0x00, 0x44, 0x00, 0x01 };
 
-            var headerBytes = msg.Take(2);
-            var parametersBytes = msg.Skip(2);
+            // Act
+            var actual = NetSdrMessageHelper.GetControlItemMessage(type, itemCode, parameters);
 
-            var num = BitConverter.ToUInt16(headerBytes.ToArray());
-            var actualType = (NetSdrMessageHelper.MsgTypes)(num >> 13);
-            var actualLength = num - ((int)actualType << 13);
-
-            //Assert
-            Assert.That(headerBytes.Count(), Is.EqualTo(2));
-            Assert.That(msg.Length, Is.EqualTo(actualLength));
-            Assert.That(type, Is.EqualTo(actualType));
-
-            Assert.That(parametersBytes.Count(), Is.EqualTo(parametersLength));
+            // Assert
+            Assert.Equal(expectedResult, actual);
         }
 
-        //TODO: add more NetSdrMessageHelper tests
+        // Тест 4: Проверка сообщения DataItem (НОВЫЙ)
+        [Fact]
+        public void GetDataItemMessage_DataItem1_ShouldCreateCorrectByteArray()
+        {
+            // Arrange
+            var type = NetSdrMessageHelper.MsgTypes.DataItem1; // type 5
+            var parameters = new byte[] { 0xAA, 0xBB, 0xCC }; // 3 байта
+
+            // Ожидаемый результат (согласно вашей логике):
+            // Header (2) + ItemCode (0) + Params (3) = 5 байт
+            // Header: 101 (type 5) + 0000000000101 (length 5) = 0xA005. В Little Endian = [0x05, 0xA0]
+            var expectedResult = new byte[] { 0x05, 0xA0, 0xAA, 0xBB, 0xCC };
+
+            // Act
+            var actual = NetSdrMessageHelper.GetDataItemMessage(type, parameters);
+
+            // Assert
+            Assert.Equal(expectedResult, actual);
+        }
     }
 }
