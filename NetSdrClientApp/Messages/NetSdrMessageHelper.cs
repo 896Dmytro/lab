@@ -41,6 +41,7 @@ namespace NetSdrClientApp.Messages
 
         public static byte[] GetControlItemMessage(MsgTypes type, ControlItemCodes itemCode, byte[] parameters)
         {
+            // === ЦЕ ПОРУШЕННЯ ДЛЯ ЛАБИ 5 ===
             var testViolation = typeof(ITcpClient); // <--- 2. ДОДАНО ВИКОРИСТАННЯ ЗАЛЕЖНОСТІ
             return GetMessage(type, itemCode, parameters);
         }
