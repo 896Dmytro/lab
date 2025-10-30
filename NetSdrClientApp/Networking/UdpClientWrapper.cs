@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -35,9 +35,11 @@ public class UdpClientWrapper : IUdpClient
                 Console.WriteLine($"Received from {result.RemoteEndPoint}");
             }
         }
-        catch (OperationCanceledException ex)
+        // --- ВИПРАВЛЕННЯ "CODE SMELL" ---
+        // Sonar не любить порожні 'catch'. Додаємо логування.
+        catch (OperationCanceledException)
         {
-            //empty
+            Console.WriteLine("Listening was canceled successfully.");
         }
         catch (Exception ex)
         {
@@ -45,6 +47,7 @@ public class UdpClientWrapper : IUdpClient
         }
     }
 
+    // --- "ГОЛОВНИЙ" МЕТОД З ЛОГІКОЮ ---
     public void StopListening()
     {
         try
@@ -59,18 +62,11 @@ public class UdpClientWrapper : IUdpClient
         }
     }
 
+    // --- ВИПРАВЛЕННЯ ДУБЛЮВАННЯ ---
+    // Цей метод тепер просто викликає інший, щоб уникнути дублювання
     public void Exit()
     {
-        try
-        {
-            _cts?.Cancel();
-            _udpClient?.Close();
-            Console.WriteLine("Stopped listening for UDP messages.");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error while stopping: {ex.Message}");
-        }
+        StopListening();
     }
 
     public override int GetHashCode()
