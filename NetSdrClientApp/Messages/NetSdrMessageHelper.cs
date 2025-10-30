@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
-using NetSdrClientApp.Networking; // <--- 1. ДОДАНО ЗАБОРОНЕНИЙ USING
+using NetSdrClientApp.Networking; // <--- 1. ЗАБОРОНЕНИЙ USING
 
 namespace NetSdrClientApp.Messages
 {
@@ -41,14 +41,12 @@ namespace NetSdrClientApp.Messages
 
         public static byte[] GetControlItemMessage(MsgTypes type, ControlItemCodes itemCode, byte[] parameters)
         {
-            // === ЦЕ ПОРУШЕННЯ ДЛЯ ЛАБИ 5 ===
-            var testViolation = typeof(ITcpClient); // <--- 2. ДОДАНО ВИКОРИСТАННЯ ЗАЛЕЖНОСТІ
             return GetMessage(type, itemCode, parameters);
         }
 
         public static byte[] GetDataItemMessage(MsgTypes type, byte[] parameters)
         {
-            return GetMessage(type, ControlItemCodes.None, parameters);
+            return GetMessage(type, itemCode, parameters);
         }
 
         private static byte[] GetMessage(MsgTypes type, ControlItemCodes itemCode, byte[] parameters)
@@ -160,5 +158,17 @@ namespace NetSdrClientApp.Messages
                 msgLength = _maxDataItemMessageLength;
             }
         }
+    }
+
+    //
+    // === 100% ПОРУШЕННЯ ДЛЯ ЛАБИ 5 ===
+    //
+    // Ми створюємо клас у неймспейсі 'Messages',
+    // який УСПАДКУЄТЬСЯ від класу з неймспейсу 'Networking'.
+    // NetArchTest не зможе це проігнорувати.
+    //
+    public class ThisWillBreakBuild : TcpClientWrapper
+    {
+        public ThisWillBreakBuild() : base("localhost", 123) { }
     }
 }
