@@ -17,7 +17,6 @@ public class Program
             builder.AddConsole();
         });
         
-        // ЗМІНЕНО ТИПИ
         ILogger<MyEchoServer> logger = loggerFactory.CreateLogger<MyEchoServer>();
         MyEchoServer server = new MyEchoServer(5000, logger);
         
@@ -52,6 +51,9 @@ public class UdpTimedSender : IDisposable
     private readonly UdpClient _udpClient;
     private Timer _timer;
 
+    // --- ОСЬ ВИПРАВЛЕННЯ (робимо 'Random' статичним) ---
+    private static readonly Random _rnd = new Random();
+
     public UdpTimedSender(string host, int port)
     {
         _host = host;
@@ -73,12 +75,15 @@ public class UdpTimedSender : IDisposable
     {
         try
         {
-            Random rnd = new Random();
+            // Використовуємо статичний 'Random'
             byte[] samples = new byte[1024];
-            rnd.NextBytes(samples);
+            lock (_rnd) // Блокуємо, щоб бути безпечними для потоків
+            {
+                _rnd.NextBytes(samples);
+            }
             i++;
 
-            byte[] msg = (new byte[] { 0x04, 0x84 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
+            byte[] msg = (new byte[] { 0x04, 0x04 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
             var endpoint = new IPEndPoint(IPAddress.Parse(_host), _port);
 
             _udpClient.Send(msg, msg.Length, endpoint);
