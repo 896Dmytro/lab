@@ -8,43 +8,42 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-public class Program
+//
+// Це код "Top-level statements". Він має бути ТІЛЬКИ у файлі Program.cs
+//
+using var loggerFactory = LoggerFactory.Create(builder =>
 {
-    public static async Task Main(string[] args)
+    builder.AddConsole();
+});
+
+ILogger<MyEchoServer> logger = loggerFactory.CreateLogger<MyEchoServer>();
+MyEchoServer server = new MyEchoServer(5000, logger);
+
+_ = Task.Run(() => server.StartAsync()); 
+
+string host = "127.0.0.1";
+int port = 60000;
+int intervalMilliseconds = 5000;
+
+using (var sender = new UdpTimedSender(host, port))
+{
+    Console.WriteLine("Press any key to stop sending...");
+    sender.StartSending(intervalMilliseconds);
+
+    Console.WriteLine("Press 'q' to quit...");
+    while (Console.ReadKey(intercept: true).Key != ConsoleKey.Q)
     {
-        using var loggerFactory = LoggerFactory.Create(builder =>
-        {
-            builder.AddConsole();
-        });
-        
-        // Повертаємо класичні імена
-        ILogger<EchoServer> logger = loggerFactory.CreateLogger<EchoServer>();
-        EchoServer server = new EchoServer(5000, logger);
-        
-        _ = Task.Run(() => server.StartAsync()); 
-
-        string host = "127.0.0.1";
-        int port = 60000;
-        int intervalMilliseconds = 5000;
-
-        using (var sender = new UdpTimedSender(host, port))
-        {
-            Console.WriteLine("Press any key to stop sending...");
-            sender.StartSending(intervalMilliseconds);
-
-            Console.WriteLine("Press 'q' to quit...");
-            while (Console.ReadKey(intercept: true).Key != ConsoleKey.Q)
-            {
-                // Wait
-            }
-
-            sender.StopSending();
-            server.Stop();
-            Console.WriteLine("Sender stopped.");
-        }
+        // Wait
     }
+
+    sender.StopSending();
+    server.Stop();
+    Console.WriteLine("Sender stopped.");
 }
 
+//
+// Клас UdpTimedSender може залишатися тут
+//
 public class UdpTimedSender : IDisposable
 {
     private readonly string _host;
@@ -52,7 +51,6 @@ public class UdpTimedSender : IDisposable
     private readonly UdpClient _udpClient;
     private Timer _timer;
 
-    // --- ВИПРАВЛЕННЯ БАГУ 'RELIABILITY' ---
     private static readonly Random _rnd = new Random();
 
     public UdpTimedSender(string host, int port)
@@ -76,16 +74,14 @@ public class UdpTimedSender : IDisposable
     {
         try
         {
-            // Використовуємо статичний 'Random'
             byte[] samples = new byte[1024];
-            lock (_rnd) // Блокуємо, щоб бути безпечними для потоків
+            lock (_rnd)
             {
                 _rnd.NextBytes(samples);
             }
             i++;
 
-            // Я помітив тут помилку, у вас було 0x04, 0x04. Можливо, Sonar теж?
-            byte[] msg = (new byte[] { 0x04, 0x84 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
+            byte[] msg = (new byte[] { 0x04, 0x04 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
             var endpoint = new IPEndPoint(IPAddress.Parse(_host), _port);
 
             _udpClient.Send(msg, msg.Length, endpoint);
