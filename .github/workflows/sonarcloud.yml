@@ -2,7 +2,7 @@ name: SonarCloud analysis
 
 on:
   push:
-    branches: [ "master" ]  # <-- Это правильно, т.к. вы пушите в master
+    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
   workflow_dispatch:
@@ -18,19 +18,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true        # <-- 1. ИСПРАВЛЕНО: Добавлена поддержка Git LFS
+          lfs: true
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
       # 1) BEGIN: SonarScanner for .NET
-# 1) BEGIN: SonarScanner for .NET
       - name: SonarScanner Begin
         run: |
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
-          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true
+          # 
+          # <--- ОСЬ ТУТ ДОДАНО ПАРАМЕТР ДЛЯ ВИКЛЮЧЕННЯ ТЕСТІВ З ПОКРИТТЯ
+          #
+          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**"
         shell: pwsh
 
       # 2) BUILD & TEST
@@ -39,7 +41,6 @@ jobs:
       - name: Build
         run: dotnet build NetSdrClient.sln -c Release --no-restore
 
-      # 4. ИСПРАВЛЕНО: Шаг с тестами раскомментирован
       - name: Tests with coverage (OpenCover)
         run: |
           dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
@@ -49,7 +50,6 @@ jobs:
         shell: pwsh
 
       # 3) END: SonarScanner
-      # 5. ИСПРАВЛЕНО: Убран лишний отступ, который ломал воркфлоу
       - name: SonarScanner End
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         shell: pwsh
