@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -71,6 +71,9 @@ namespace NetSdrClientApp.Networking
             }
         }
 
+        // --- ПОЧАТОК ВИПРАВЛЕННЯ ---
+
+        // Це "головний" метод, який містить всю логіку відправки
         public async Task SendMessageAsync(byte[] data)
         {
             if (Connected && _stream != null && _stream.CanWrite)
@@ -84,19 +87,15 @@ namespace NetSdrClientApp.Networking
             }
         }
 
+        // Цей метод тепер просто конвертує string в byte[] і викликає інший метод
         public async Task SendMessageAsync(string str)
         {
             var data = Encoding.UTF8.GetBytes(str);
-            if (Connected && _stream != null && _stream.CanWrite)
-            {
-                Console.WriteLine($"Message sent: " + data.Select(b => Convert.ToString(b, toBase: 16)).Aggregate((l, r) => $"{l} {r}"));
-                await _stream.WriteAsync(data, 0, data.Length);
-            }
-            else
-            {
-                throw new InvalidOperationException("Not connected to a server.");
-            }
+            // Викликаємо перевантажену версію, яка приймає byte[]
+            await SendMessageAsync(data);
         }
+
+        // --- КІНЕЦЬ ВИПРАВЛЕННЯ ---
 
         private async Task StartListeningAsync()
         {
@@ -136,5 +135,4 @@ namespace NetSdrClientApp.Networking
             }
         }
     }
-
 }
