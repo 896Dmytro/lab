@@ -5,9 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-//
-// Рядок 'using EchoServer;' було видалено звідси
-//
+// Рядок 'using EchoServer;' було видалено, ЯКЩО ВІН ТУТ БУВ
 
 namespace EchoServer.Tests
 {
@@ -17,8 +15,16 @@ namespace EchoServer.Tests
         public async Task ProcessClientStreamAsync_ShouldEchoData_WhenDataIsSent()
         {
             // --- Arrange (Підготовка) ---
-            var logger = new NullLogger<EchoServer>();
-            var server = new EchoServer(1234, logger);
+            
+            // 
+            // --- ОСЬ ВИПРАВЛЕННЯ ---
+            //
+            var logger = new NullLogger<global::EchoServer>();
+            var server = new global::EchoServer(1234, logger);
+            //
+            // --- КІНЕЦЬ ВИПРАВЛЕННЯ ---
+            //
+
             var testMessage = "Hello World";
             var testBytes = Encoding.UTF8.GetBytes(testMessage);
 
