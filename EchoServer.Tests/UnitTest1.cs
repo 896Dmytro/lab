@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-// Рядок 'using EchoServer;' було видалено, ЯКЩО ВІН ТУТ БУВ
+// 'using EchoServer;' видалено
 
 namespace EchoServer.Tests
 {
@@ -16,15 +16,10 @@ namespace EchoServer.Tests
         {
             // --- Arrange (Підготовка) ---
             
-            // 
-            // --- ОСЬ ВИПРАВЛЕННЯ ---
-            //
-            var logger = new NullLogger<global::EchoServer>();
-            var server = new global::EchoServer(1234, logger);
-            //
-            // --- КІНЕЦЬ ВИПРАВЛЕННЯ ---
-            //
-
+            // ЗМІНЕНО ТИПИ
+            var logger = new NullLogger<MyEchoServer>();
+            var server = new MyEchoServer(1234, logger);
+            
             var testMessage = "Hello World";
             var testBytes = Encoding.UTF8.GetBytes(testMessage);
 

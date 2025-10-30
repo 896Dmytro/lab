@@ -6,15 +6,17 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-// БЕЗ ПРОСТОРУ ІМЕН (NAMESPACE)
-public class EchoServer
+// КЛАС ПЕРЕЙМЕНОВАНО
+public class MyEchoServer
 {
     private readonly int _port;
-    private readonly ILogger<EchoServer> _logger;
+    // ТИП ЛОГГЕРА ЗМІНЕНО
+    private readonly ILogger<MyEchoServer> _logger; 
     private TcpListener _listener;
     private CancellationTokenSource _cancellationTokenSource;
 
-    public EchoServer(int port, ILogger<EchoServer> logger)
+    // КОНСТРУКТОР ЗМІНЕНО
+    public MyEchoServer(int port, ILogger<MyEchoServer> logger) 
     {
         _port = port;
         _logger = logger;

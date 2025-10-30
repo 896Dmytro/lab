@@ -8,21 +8,20 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-// --- Точка входу програми ---
 public class Program
 {
     public static async Task Main(string[] args)
     {
-        // Налаштовуємо логгер для консолі
         using var loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.AddConsole();
         });
-        ILogger<EchoServer> logger = loggerFactory.CreateLogger<EchoServer>();
-
-        // Створюємо та запускаємо сервер з логгером
-        EchoServer server = new EchoServer(5000, logger);
-        _ = Task.Run(() => server.StartAsync()); // Запускаємо сервер
+        
+        // ЗМІНЕНО ТИПИ
+        ILogger<MyEchoServer> logger = loggerFactory.CreateLogger<MyEchoServer>();
+        MyEchoServer server = new MyEchoServer(5000, logger);
+        
+        _ = Task.Run(() => server.StartAsync()); 
 
         string host = "127.0.0.1";
         int port = 60000;
@@ -36,7 +35,7 @@ public class Program
             Console.WriteLine("Press 'q' to quit...");
             while (Console.ReadKey(intercept: true).Key != ConsoleKey.Q)
             {
-                // Чекаємо 'q'
+                // Wait
             }
 
             sender.StopSending();
@@ -46,7 +45,6 @@ public class Program
     }
 }
 
-// --- Клас UDP-відправника ---
 public class UdpTimedSender : IDisposable
 {
     private readonly string _host;
@@ -97,8 +95,7 @@ public class UdpTimedSender : IDisposable
         _timer?.Dispose();
         _timer = null;
     }
-
-    // --- ОСЬ ТУТ ВИПРАВЛЕННЯ ---
+    
     public void Dispose()
     {
         StopSending();
