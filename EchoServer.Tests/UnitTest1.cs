@@ -1,11 +1,13 @@
-using Microsoft.Extensions.Logging.Abstractions; // Потрібно для NullLogger
+using Microsoft.Extensions.Logging.Abstractions;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-// 'using EchoServer;' було видалено звідси
+//
+// Рядок 'using EchoServer;' було видалено звідси
+//
 
 namespace EchoServer.Tests
 {
