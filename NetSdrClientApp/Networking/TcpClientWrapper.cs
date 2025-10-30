@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -71,6 +71,7 @@ namespace NetSdrClientApp.Networking
             }
         }
 
+        // --- ВИПРАВЛЕННЯ ДУБЛЮВАННЯ ---
         public async Task SendMessageAsync(byte[] data)
         {
             if (Connected && _stream != null && _stream.CanWrite)
@@ -87,16 +88,10 @@ namespace NetSdrClientApp.Networking
         public async Task SendMessageAsync(string str)
         {
             var data = Encoding.UTF8.GetBytes(str);
-            if (Connected && _stream != null && _stream.CanWrite)
-            {
-                Console.WriteLine($"Message sent: " + data.Select(b => Convert.ToString(b, toBase: 16)).Aggregate((l, r) => $"{l} {r}"));
-                await _stream.WriteAsync(data, 0, data.Length);
-            }
-            else
-            {
-                throw new InvalidOperationException("Not connected to a server.");
-            }
+            await SendMessageAsync(data); // Викликаємо іншу версію
         }
+        // --- КІНЕЦЬ ВИПРАВЛЕННЯ ---
+
 
         private async Task StartListeningAsync()
         {
@@ -117,9 +112,10 @@ namespace NetSdrClientApp.Networking
                         }
                     }
                 }
-                catch (OperationCanceledException ex)
+                catch (OperationCanceledException) // --- ВИПРАВЛЕННЯ CODE SMELL ---
                 {
-                    //empty
+                    // Це очікуваний виняток при _cts.Cancel(), нічого не робимо
+                    Console.WriteLine("Listening was canceled.");
                 }
                 catch (Exception ex)
                 {
@@ -136,5 +132,4 @@ namespace NetSdrClientApp.Networking
             }
         }
     }
-
 }
