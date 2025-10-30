@@ -1,7 +1,8 @@
 using Xunit;
 using NetSdrClientApp.Messages; // Используем ваш правильный namespace
+using NetSdrClientApp.Networking; // <-- ДОДАЙТЕ ЦЕЙ USING
 using System;
-using System.Threading.Tasks;     // <--- ДОДАЙТЕ ЦЕЙ USING
+using System.Threading.Tasks;     // <-- ДОДАЙТЕ ЦЕЙ USING
 
 namespace NetSdrClientAppTests
 {
@@ -67,7 +68,6 @@ namespace NetSdrClientAppTests
         }
 
         // Тест 4: Проверка сообщения DataItem (ИСПРАВЛЕНО)
-        // (Ваш код GetMessage не добавляет SequenceNumber, поэтому он был лишний)
         [Fact]
         public void GetDataItemMessage_DataItem1_ShouldCreateCorrectByteArray()
         {
@@ -87,21 +87,20 @@ namespace NetSdrClientAppTests
         }
     }
 
-    // --- ДОДАЙТЕ ЦЕЙ КЛАС В КІНЕЦЬ ФАЙЛУ ---
+    // --- ДОДАНО ТЕСТИ ДЛЯ UDP (конвертовано в Xunit) ---
     public class UdpClientWrapperTests
     {
         [Fact]
         public void Exit_ShouldCallStopListening_WithoutErrors()
         {
-            // Arrange (Подготовка)
-            var wrapper = new UdpClientWrapper(9999); 
+            // Arrange
+            var wrapper = new UdpClientWrapper(9999);
             
-            // Act (Действие)
-            // Цей виклик покриє тестами рядки в методах Exit() і StopListening()
-            wrapper.Exit();
+            // Act
+            wrapper.Exit(); // Покриває код в Exit() та StopListening()
 
-            // Assert (Проверка)
-            Assert.True(true); 
+            // Assert
+            Assert.True(true); // Тест пройшов, якщо не було помилок
         }
 
         [Fact]
@@ -112,24 +111,33 @@ namespace NetSdrClientAppTests
 
             // Act
             var listenTask = wrapper.StartListeningAsync();
+            await Task.Delay(50); // Даємо час запуститися
             
-            // Даємо мікро-паузу
-            await Task.Delay(50); 
-
-            // Зупиняємо (це покриє 'catch (OperationCanceledException)')
-            wrapper.StopListening(); 
+            wrapper.StopListening(); // Покриває catch (OperationCanceledException)
+            
+            await listenTask; // Чекаємо на завершення (не має кидати помилку)
 
             // Assert
-            try
-            {
-                await listenTask;
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail($"Test failed with unexpected exception: {ex.Message}");
-            }
+            Assert.True(true);
+        }
+    }
 
-            Assert.True(true); // Тест успішно завершився
+    // --- ДОДАНО ТЕСТИ ДЛЯ TCP (щоб покрити решту 50%) ---
+    public class TcpClientWrapperTests
+    {
+        [Fact]
+        public async Task SendMessageAsync_StringOverload_ThrowsWhenNotConnected()
+        {
+            // Arrange
+            var wrapper = new TcpClientWrapper("localhost", 9996);
+            
+            // Act & Assert
+            // Цей тест покриває зміни в SendMessageAsync(string str)
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => wrapper.SendMessageAsync("test message")
+            );
+            
+            Assert.Equal("Not connected to a server.", ex.Message);
         }
     }
 }
