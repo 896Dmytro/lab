@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
+using NetSdrClientApp.Networking; // <--- 1. ДОДАНО ЗАБОРОНЕНИЙ USING
 
 namespace NetSdrClientApp.Messages
 {
@@ -40,6 +41,7 @@ namespace NetSdrClientApp.Messages
 
         public static byte[] GetControlItemMessage(MsgTypes type, ControlItemCodes itemCode, byte[] parameters)
         {
+            var testViolation = typeof(ITcpClient); // <--- 2. ДОДАНО ВИКОРИСТАННЯ ЗАЛЕЖНОСТІ
             return GetMessage(type, itemCode, parameters);
         }
 
@@ -109,14 +111,14 @@ namespace NetSdrClientApp.Messages
         public static IEnumerable<int> GetSamples(ushort sampleSize, byte[] body)
         {
             sampleSize /= 8; //to bytes
-            if (sampleSize  > 4)
+            if (sampleSize > 4)
             {
                 throw new ArgumentOutOfRangeException();
             }
 
             var bodyEnumerable = body as IEnumerable<byte>;
             var prefixBytes = Enumerable.Range(0, 4 - sampleSize)
-                                      .Select(b => (byte)0);
+                                        .Select(b => (byte)0);
 
             while (bodyEnumerable.Count() >= sampleSize)
             {
