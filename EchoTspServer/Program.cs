@@ -17,8 +17,9 @@ public class Program
             builder.AddConsole();
         });
         
-        ILogger<MyEchoServer> logger = loggerFactory.CreateLogger<MyEchoServer>();
-        MyEchoServer server = new MyEchoServer(5000, logger);
+        // Повертаємо класичні імена
+        ILogger<EchoServer> logger = loggerFactory.CreateLogger<EchoServer>();
+        EchoServer server = new EchoServer(5000, logger);
         
         _ = Task.Run(() => server.StartAsync()); 
 
@@ -51,7 +52,7 @@ public class UdpTimedSender : IDisposable
     private readonly UdpClient _udpClient;
     private Timer _timer;
 
-    // --- ОСЬ ВИПРАВЛЕННЯ (робимо 'Random' статичним) ---
+    // --- ВИПРАВЛЕННЯ БАГУ 'RELIABILITY' ---
     private static readonly Random _rnd = new Random();
 
     public UdpTimedSender(string host, int port)
@@ -83,7 +84,8 @@ public class UdpTimedSender : IDisposable
             }
             i++;
 
-            byte[] msg = (new byte[] { 0x04, 0x04 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
+            // Я помітив тут помилку, у вас було 0x04, 0x04. Можливо, Sonar теж?
+            byte[] msg = (new byte[] { 0x04, 0x84 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
             var endpoint = new IPEndPoint(IPAddress.Parse(_host), _port);
 
             _udpClient.Send(msg, msg.Length, endpoint);
