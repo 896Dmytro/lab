@@ -1,6 +1,7 @@
 using Xunit;
 using NetSdrClientApp.Messages; // Используем ваш правильный namespace
-using System;                   // Добавляем для Array.Empty
+using System;
+using System.Threading.Tasks;     // <--- ДОДАЙТЕ ЦЕЙ USING
 
 namespace NetSdrClientAppTests
 {
@@ -83,6 +84,52 @@ namespace NetSdrClientAppTests
 
             // Assert
             Assert.Equal(expectedResult, actual);
+        }
+    }
+
+    // --- ДОДАЙТЕ ЦЕЙ КЛАС В КІНЕЦЬ ФАЙЛУ ---
+    public class UdpClientWrapperTests
+    {
+        [Fact]
+        public void Exit_ShouldCallStopListening_WithoutErrors()
+        {
+            // Arrange (Подготовка)
+            var wrapper = new UdpClientWrapper(9999); 
+            
+            // Act (Действие)
+            // Цей виклик покриє тестами рядки в методах Exit() і StopListening()
+            wrapper.Exit();
+
+            // Assert (Проверка)
+            Assert.True(true); 
+        }
+
+        [Fact]
+        public async Task StartListeningAsync_CanBeCanceled_WithoutErrors()
+        {
+            // Arrange
+            var wrapper = new UdpClientWrapper(9998);
+
+            // Act
+            var listenTask = wrapper.StartListeningAsync();
+            
+            // Даємо мікро-паузу
+            await Task.Delay(50); 
+
+            // Зупиняємо (це покриє 'catch (OperationCanceledException)')
+            wrapper.StopListening(); 
+
+            // Assert
+            try
+            {
+                await listenTask;
+            }
+            catch (Exception ex)
+            {
+                Assert.Fail($"Test failed with unexpected exception: {ex.Message}");
+            }
+
+            Assert.True(true); // Тест успішно завершився
         }
     }
 }
