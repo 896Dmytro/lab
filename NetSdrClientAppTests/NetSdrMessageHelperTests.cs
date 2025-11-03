@@ -1,11 +1,10 @@
 using Xunit;
 using NetSdrClientApp.Messages;
-using NetSdrClientApp.Networking; // <-- Убедитесь, что этот using есть
+using NetSdrClientApp.Networking; // <-- Цей using потрібен
 using System;
 using System.Threading.Tasks;
-using NetArchTest.Rules; // <-- Using из Лабы 5
-using System.Reflection; // <-- Using из Лабы 5
-using System.IO; // <-- Добавлено на всякий случай
+// using NetArchTest.Rules; // <-- Видалено
+// using System.Reflection; // <-- Видалено
 
 namespace NetSdrClientAppTests
 {
@@ -66,33 +65,17 @@ namespace NetSdrClientAppTests
         }
     }
 
-    // --- Тесты из Лабы 5 (Архитектура) ---
-    public class ArchitectureTests
-    {
-        private static readonly Assembly AppAssembly = typeof(NetSdrMessageHelper).Assembly;
+    // --- Тести з Лаби 5 (Архітектура) БУЛО ВИДАЛЕНО ЗВІДСИ ---
+    // (Вони залишаються у вашому файлі ArchitectureTests.cs)
 
-        [Fact]
-        public void Messages_ShouldNot_DependOnNetworking()
-        {
-            var rule = Types.InAssembly(AppAssembly)
-                .That()
-                .ResideInNamespace("NetSdrClientApp.Messages")
-                .ShouldNot()
-                .HaveDependencyOn("NetSdrClientApp.Networking");
-            
-            var result = rule.GetResult();
-            Assert.True(result.IsSuccessful, "Namespace 'Messages' should not depend on 'Networking'");
-        }
-    }
-
-    // --- Тесты из Лабы 6 (для покрытия 50% -> 100%) ---
+    // --- Тести з Лаби 6 (для покриття 50% -> 100%) ---
     public class UdpClientWrapperTests
     {
         [Fact]
         public void Exit_ShouldCallStopListening_WithoutErrors()
         {
             var wrapper = new UdpClientWrapper(9999); 
-            wrapper.Exit(); // Покрывает 3 строки
+            wrapper.Exit(); // Покриває 3 рядки
             Assert.True(true); 
         }
     }
@@ -103,7 +86,7 @@ namespace NetSdrClientAppTests
         public async Task SendMessageAsync_StringOverload_ThrowsWhenNotConnected()
         {
             var wrapper = new TcpClientWrapper("localhost", 9996);
-            // Покрывает 2 строки
+            // Покриває 2 рядки
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => wrapper.SendMessageAsync("test message")
             );
