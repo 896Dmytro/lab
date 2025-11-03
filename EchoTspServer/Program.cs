@@ -7,10 +7,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis; 
+// using System.Diagnostics.CodeAnalysis; // <-- АТРИБУТЫ УДАЛЕНЫ
 using System.Security.Cryptography; 
 
-[ExcludeFromCodeCoverage] // Игнорируем класс Program
 public class Program
 {
     public static async Task Main(string[] args)
@@ -47,7 +46,6 @@ public class Program
     }
 }
 
-[ExcludeFromCodeCoverage] // Игнорируем класс UdpTimedSender
 public class UdpTimedSender : IDisposable
 {
     private readonly string _host;
@@ -76,7 +74,6 @@ public class UdpTimedSender : IDisposable
     {
         try
         {
-            // Исправляем Security Hotspot
             byte[] samples = new byte[1024];
             RandomNumberGenerator.Fill(samples);
             
