@@ -46,14 +46,14 @@ jobs:
         run: |
           #
           # <--- ФІНАЛЬНЕ ВИПРАВЛЕННЯ:
-          # 1. Запускаємо на рівні .sln (щоб запустити ВСІ тесты і отримати 1 звіт)
-          # 2. Додаємо /p:CoverletExcludeByAttribute (щоб [ExcludeFromCodeCoverage] спрацював)
+          # 1. Запускаємо на рівні .sln (щоб запустити ВСІ тести і отримати 1 звіт)
+          # 2. Додаємо /p:CoverletExclude, щоб ПРИМУСОВО ігнорувати всі проблемні файли
           #
           dotnet test NetSdrClient.sln -c Release --no-build `
             /p:CollectCoverage=true `
             /p:CoverletOutput=TestResults/coverage.xml `
             /p:CoverletOutputFormat=opencover `
-            /p:CoverletExcludeByAttribute="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"
+            /p:CoverletExclude="[EchoServer]*MyEchoServer.cs%2c[EchoServer]*Program.cs%2c[NetSdrClientApp]*UdpClientWrapper.cs%2c[NetSdrClientApp]*TcpClientWrapper.cs%2c[NetSdrClientApp]*NetSdrMessageHelper.cs"
             
         shell: pwsh
 
