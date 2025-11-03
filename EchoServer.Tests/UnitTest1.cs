@@ -4,8 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-
-// 'using EchoServer;' видалено
+using EchoTspServer; // <--- ВОТ ИСПРАВЛЕНИЕ
 
 namespace EchoServer.Tests
 {
@@ -14,17 +13,12 @@ namespace EchoServer.Tests
         [Fact]
         public async Task ProcessClientStreamAsync_ShouldEchoData_WhenDataIsSent()
         {
-            // --- Arrange (Підготовка) ---
+            // --- Arrange (Подготовка) ---
             
-            // 
-            // --- ОСЬ ВИПРАВЛЕННЯ (використовуємо MyEchoServer) ---
-            //
+            // Мы убрали 'global::' хак
             var logger = new NullLogger<MyEchoServer>();
             var server = new MyEchoServer(1234, logger);
-            //
-            // --- КІНЕЦЬ ВИПРАВЛЕННЯ ---
-            //
-
+            
             var testMessage = "Hello World";
             var testBytes = Encoding.UTF8.GetBytes(testMessage);
 
