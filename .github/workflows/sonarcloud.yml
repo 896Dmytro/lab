@@ -32,7 +32,7 @@ jobs:
           #
           # <--- ФІНАЛЬНЕ ВИПРАВЛЕННЯ: Кажемо Sonar ігнорувати покриття для ВСІХ проблемних файлів
           #
-          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**,**/MyEchoServer.cs,**/Program.cs,**/UdpClientWrapper.cs,**/TcpClientWrapper.cs,**/NetSdrMessageHelper.cs"
+          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**,**/MyEchoServer.cs,**/Program.cs,**/UdpClientWrapper.cs,**/TcpClientWrapper.cs,**/NetSdrMessageHelper.cs"
         shell: pwsh
 
       # 2) BUILD
