@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-// using System.Diagnostics.CodeAnalysis; // <-- АТРИБУТЫ УДАЛЕНЫ
+using System.Diagnostics.CodeAnalysis; // <--- ПОВЕРТАЄМО ЦЕЙ USING
 
 public class MyEchoServer
 {
@@ -14,6 +14,7 @@ public class MyEchoServer
     private TcpListener _listener;
     private CancellationTokenSource _cancellationTokenSource;
 
+    [ExcludeFromCodeCoverage] // Ігноруємо конструктор
     public MyEchoServer(int port, ILogger<MyEchoServer> logger)
     {
         _port = port;
@@ -21,6 +22,7 @@ public class MyEchoServer
         _cancellationTokenSource = new CancellationTokenSource();
     }
 
+    [ExcludeFromCodeCoverage] // Ігноруємо StartAsync
     public async Task StartAsync()
     {
         _listener = new TcpListener(IPAddress.Any, _port);
@@ -44,6 +46,7 @@ public class MyEchoServer
         _logger.LogInformation("Server shutdown.");
     }
 
+    [ExcludeFromCodeCoverage] // Ігноруємо HandleClientAsync
     private async Task HandleClientAsync(TcpClient client, CancellationToken token)
     {
         try
@@ -64,7 +67,8 @@ public class MyEchoServer
         }
     }
 
-    // --- ЭТОТ МЕТОД МЫ ТЕСТИРУЕМ ---
+    // --- ЦЕЙ МЕТОД МИ ТЕСТУЄМО ---
+    // (На ньому НЕМАЄ атрибуту)
     public async Task ProcessClientStreamAsync(Stream stream, CancellationToken token)
     {
         byte[] buffer = new byte[8192];
@@ -84,6 +88,7 @@ public class MyEchoServer
         }
     }
 
+    [ExcludeFromCodeCoverage] // Ігноруємо Stop
     public void Stop()
     {
         _cancellationTokenSource.Cancel();
