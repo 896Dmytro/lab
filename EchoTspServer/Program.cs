@@ -7,15 +7,10 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis; // <--- Добавлено
-using System.Security.Cryptography; // <--- Добавлено
+using System.Diagnostics.CodeAnalysis; 
+using System.Security.Cryptography; 
 
-//
-// [assembly: ...] БЫЛО УДАЛЕНО ОТСЮДА
-//
-
-// Помечаем класс Program, чтобы Sonar игнорировал его покрытие
-[ExcludeFromCodeCoverage] 
+[ExcludeFromCodeCoverage] // Игнорируем класс Program
 public class Program
 {
     public static async Task Main(string[] args)
@@ -52,8 +47,7 @@ public class Program
     }
 }
 
-// Помечаем класс UdpTimedSender, чтобы Sonar игнорировал его покрытие
-[ExcludeFromCodeCoverage]
+[ExcludeFromCodeCoverage] // Игнорируем класс UdpTimedSender
 public class UdpTimedSender : IDisposable
 {
     private readonly string _host;
