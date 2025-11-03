@@ -7,10 +7,12 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis; // <--- ПОВЕРТАЄМО ЦЕЙ USING
+using System.Diagnostics.CodeAnalysis; 
 using System.Security.Cryptography; 
 
-[ExcludeFromCodeCoverage] // Ігноруємо клас Program
+namespace EchoTspServer; // <--- ВОТ ИСПРАВЛЕНИЕ
+
+[ExcludeFromCodeCoverage] 
 public class Program
 {
     public static async Task Main(string[] args)
@@ -47,7 +49,7 @@ public class Program
     }
 }
 
-[ExcludeFromCodeCoverage] // Ігноруємо клас UdpTimedSender
+[ExcludeFromCodeCoverage] 
 public class UdpTimedSender : IDisposable
 {
     private readonly string _host;
@@ -76,7 +78,6 @@ public class UdpTimedSender : IDisposable
     {
         try
         {
-            // Виправлено Security Hotspot
             byte[] samples = new byte[1024];
             RandomNumberGenerator.Fill(samples);
             
