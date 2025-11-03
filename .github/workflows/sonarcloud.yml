@@ -30,9 +30,9 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
           #
-          # <--- ИЗМЕНЕНИЕ: Указываем Sonar'у искать ОДИН объединенный отчет
+          # Шляхи до звітів правильні
           #
-          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**"
+          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.xml,**/TestResults/coverage-echo.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**"
         shell: pwsh
 
       # 2) BUILD
@@ -45,12 +45,21 @@ jobs:
       - name: Tests with coverage (OpenCover)
         run: |
           #
-          # <--- ИЗМЕНЕНИЕ: Запускаем тесты на уровне .sln, чтобы получить ОДИН объединенный отчет
+          # <--- ОСЬ ГОЛОВНЕ ВИПРАВЛЕННЯ ---
           #
-          dotnet test NetSdrClient.sln -c Release --no-build `
+          # Тест 1 (NetSdrClientApp)
+          dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
             /p:CollectCoverage=true `
             /p:CoverletOutput=TestResults/coverage.xml `
-            /p:CoverletOutputFormat=opencover
+            /p:CoverletOutputFormat=opencover `
+            /p:CoverletExcludeByAttribute="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"
+          
+          # Тест 2 (EchoServer)
+          dotnet test EchoServer.Tests/EchoServer.Tests.csproj -c Release --no-build `
+            /p:CollectCoverage=true `
+            /p:CoverletOutput=TestResults/coverage-echo.xml `
+            /p:CoverletOutputFormat=opencover `
+            /p:CoverletExcludeByAttribute="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"
             
         shell: pwsh
 
