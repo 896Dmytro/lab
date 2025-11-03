@@ -5,7 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis; // <--- ДОДАНО ДЛЯ АТРИБУТУ
+using System.Diagnostics.CodeAnalysis; 
 
 public class MyEchoServer
 {
@@ -14,7 +14,7 @@ public class MyEchoServer
     private TcpListener _listener;
     private CancellationTokenSource _cancellationTokenSource;
 
-    [ExcludeFromCodeCoverage] // Ігноруємо конструктор
+    [ExcludeFromCodeCoverage] // Игнорируем конструктор
     public MyEchoServer(int port, ILogger<MyEchoServer> logger)
     {
         _port = port;
@@ -22,7 +22,7 @@ public class MyEchoServer
         _cancellationTokenSource = new CancellationTokenSource();
     }
 
-    [ExcludeFromCodeCoverage] // Ігноруємо StartAsync
+    [ExcludeFromCodeCoverage] // Игнорируем StartAsync
     public async Task StartAsync()
     {
         _listener = new TcpListener(IPAddress.Any, _port);
@@ -46,7 +46,7 @@ public class MyEchoServer
         _logger.LogInformation("Server shutdown.");
     }
 
-    [ExcludeFromCodeCoverage] // Ігноруємо HandleClientAsync
+    [ExcludeFromCodeCoverage] // Игнорируем HandleClientAsync
     private async Task HandleClientAsync(TcpClient client, CancellationToken token)
     {
         try
@@ -67,7 +67,8 @@ public class MyEchoServer
         }
     }
 
-    // --- ЦЕЙ МЕТОД МИ ТЕСТУЄМО ---
+    // --- ЭТОТ МЕТОД МЫ ТЕСТИРУЕМ ---
+    // (На нем НЕТ атрибута)
     public async Task ProcessClientStreamAsync(Stream stream, CancellationToken token)
     {
         byte[] buffer = new byte[8192];
@@ -87,7 +88,7 @@ public class MyEchoServer
         }
     }
 
-    [ExcludeFromCodeCoverage] // Ігноруємо Stop
+    [ExcludeFromCodeCoverage] // Игнорируем Stop
     public void Stop()
     {
         _cancellationTokenSource.Cancel();
