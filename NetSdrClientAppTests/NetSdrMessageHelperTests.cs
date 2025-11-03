@@ -1,16 +1,16 @@
 using Xunit;
 using NetSdrClientApp.Messages;
-using NetSdrClientApp.Networking; // <-- ДОБАВЬТЕ ЭТОТ USING
+using NetSdrClientApp.Networking; // <-- Убедитесь, что этот using есть
 using System;
 using System.Threading.Tasks;
+using NetArchTest.Rules; // <-- Using из Лабы 5
+using System.Reflection; // <-- Using из Лабы 5
+using System.IO; // <-- Добавлено на всякий случай
 
 namespace NetSdrClientAppTests
 {
     public class NetSdrMessageHelperTests
     {
-        // ... (Здесь ваши 4 старых теста для NetSdrMessageHelper) ...
-        // (Я их скрыл для краткости, но они должны здесь быть)
-
         [Fact]
         public void GetControlItemMessage_ShouldCreateCorrectByteArray()
         {
@@ -66,25 +66,35 @@ namespace NetSdrClientAppTests
         }
     }
 
-    // --- ДОБАВЬТЕ ЭТИ КЛАССЫ В КОНЕЦ ФАЙЛА ---
+    // --- Тесты из Лабы 5 (Архитектура) ---
+    public class ArchitectureTests
+    {
+        private static readonly Assembly AppAssembly = typeof(NetSdrMessageHelper).Assembly;
 
+        [Fact]
+        public void Messages_ShouldNot_DependOnNetworking()
+        {
+            var rule = Types.InAssembly(AppAssembly)
+                .That()
+                .ResideInNamespace("NetSdrClientApp.Messages")
+                .ShouldNot()
+                .HaveDependencyOn("NetSdrClientApp.Networking");
+            
+            var result = rule.GetResult();
+            Assert.True(result.IsSuccessful, "Namespace 'Messages' should not depend on 'Networking'");
+        }
+    }
+
+    // --- Тесты из Лабы 6 (для покрытия 50% -> 100%) ---
     public class UdpClientWrapperTests
     {
         [Fact]
         public void Exit_ShouldCallStopListening_WithoutErrors()
         {
-            // Arrange (Этот тест покроет 3 строки в UdpClientWrapper)
             var wrapper = new UdpClientWrapper(9999); 
-            
-            // Act
-            wrapper.Exit(); // Покрывает refactor Exit() -> StopListening()
-
-            // Assert
+            wrapper.Exit(); // Покрывает 3 строки
             Assert.True(true); 
         }
-
-        // (Тест для catch() добавлять слишком сложно,
-        // давайте пока покроем только 3 строки)
     }
 
     public class TcpClientWrapperTests
@@ -92,16 +102,11 @@ namespace NetSdrClientAppTests
         [Fact]
         public async Task SendMessageAsync_StringOverload_ThrowsWhenNotConnected()
         {
-            // Arrange (Этот тест покроет 2 строки в TcpClientWrapper)
             var wrapper = new TcpClientWrapper("localhost", 9996);
-            
-            // Act & Assert
-            // Этот тест вызывает SendMessageAsync(string), который
-            // покрывает 2 строки рефакторинга
+            // Покрывает 2 строки
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => wrapper.SendMessageAsync("test message")
             );
-            
             Assert.Equal("Not connected to a server.", ex.Message);
         }
     }
