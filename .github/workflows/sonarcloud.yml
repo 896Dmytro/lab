@@ -30,7 +30,7 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
           #
-          # Шляхи до звітів правильні
+          # Sonar будет искать ОБА отчета в любых подпапках
           #
           dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.xml,**/TestResults/coverage-echo.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**"
         shell: pwsh
@@ -45,8 +45,10 @@ jobs:
       - name: Tests with coverage (OpenCover)
         run: |
           #
-          # <--- ОСЬ ГОЛОВНЕ ВИПРАВЛЕННЯ ---
+          # <--- ВОТ ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ ---
+          # Мы генерируем ДВА отчета, и ОБА уважают атрибуты [Exclude...]
           #
+          
           # Тест 1 (NetSdrClientApp)
           dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
             /p:CollectCoverage=true `
