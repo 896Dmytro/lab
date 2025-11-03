@@ -46,7 +46,7 @@ jobs:
         run: |
           #
           # <--- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ:
-          # 1. Запускаем на уровне .sln (чтобы запустить ВСЕ тесты)
+          # 1. Запускаем на уровне .sln (чтобы запустить ВСЕ тесты и получить 1 отчет)
           # 2. Добавляем /p:CoverletExcludeByAttribute (чтобы [ExcludeFromCodeCoverage] заработал)
           #
           dotnet test NetSdrClient.sln -c Release --no-build `
