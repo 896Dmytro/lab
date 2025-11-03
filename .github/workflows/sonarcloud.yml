@@ -30,7 +30,7 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
           #
-          # Шукаємо ОДИН звіт
+          # <--- Шукаємо ОДИН звіт
           #
           dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**"
         shell: pwsh
@@ -45,13 +45,15 @@ jobs:
       - name: Tests with coverage (OpenCover)
         run: |
           #
-          # <--- ФІНАЛЬНЕ ВИПРАВЛЕННЯ: Замінено ',' на '%2c' у фільтрі
+          # <--- ФІНАЛЬНЕ ВИПРАВЛЕННЯ:
+          # 1. Запускаємо на рівні .sln (щоб запустити ВСІ тесты і отримати 1 звіт)
+          # 2. Додаємо /p:CoverletExcludeByAttribute (щоб [ExcludeFromCodeCoverage] спрацював)
           #
           dotnet test NetSdrClient.sln -c Release --no-build `
             /p:CollectCoverage=true `
             /p:CoverletOutput=TestResults/coverage.xml `
             /p:CoverletOutputFormat=opencover `
-            /p:CoverletCollect="[NetSdrClientApp]*NetSdrMessageHelper%2c[NetSdrClientApp]*UdpClientWrapper%2c[NetSdrClientApp]*TcpClientWrapper%2c[EchoServer]*MyEchoServer"
+            /p:CoverletExcludeByAttribute="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"
             
         shell: pwsh
 
