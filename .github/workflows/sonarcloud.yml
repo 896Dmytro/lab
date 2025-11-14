@@ -45,12 +45,12 @@ jobs:
       - name: Tests with coverage (OpenCover)
         run: |
           #
-          # <--- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: Исправлен синтаксис на /p:MaxCpuCount=1
+          # <--- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: Добавлено --settings "" (чтобы отключить .runsettings)
           #
           
           # Тест 1 (NetSdrClientApp)
           dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
-            /p:MaxCpuCount=1 `
+            --settings "" `
             /p:CollectCoverage=true `
             /p:CoverletOutput=TestResults/coverage.xml `
             /p:CoverletOutputFormat=opencover `
@@ -58,7 +58,7 @@ jobs:
           
           # Тест 2 (EchoServer)
           dotnet test EchoServer.Tests/EchoServer.Tests.csproj -c Release --no-build `
-            /p:MaxCpuCount=1 `
+            --settings "" `
             /p:CollectCoverage=true `
             /p:CoverletOutput=TestResults/coverage-echo.xml `
             /p:CoverletOutputFormat=opencover `
