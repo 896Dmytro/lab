@@ -41,11 +41,20 @@ jobs:
       - name: Build
         run: dotnet build NetSdrClient.sln -c Release --no-restore
 
+      #
+      # <--- НОВЫЙ ШАГ: Создаем папки для отчетов
+      #
+      - name: Create TestResults directories
+        run: |
+          mkdir -Force .\NetSdrClientAppTests\TestResults
+          mkdir -Force .\EchoServer.Tests\TestResults
+        shell: pwsh
+
       # 3) TEST & COVERAGE
       - name: Tests with coverage (OpenCover)
         run: |
           #
-          # <--- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: Указываем на реальный, пустой ci.runsettings
+          # <--- Мы используем ci.runsettings для отключения параллельного запуска
           #
           
           # Тест 1 (NetSdrClientApp)
