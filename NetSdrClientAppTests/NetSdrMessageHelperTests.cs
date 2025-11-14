@@ -86,6 +86,9 @@ namespace NetSdrClientAppTests
 
     #region "Ручные стабы" (Manual Stubs)
     
+    //
+    // <--- ВОТ ИСПРАВЛЕНИЕ "ЗАВИСАНИЯ" (HANG)
+    //
     public class StubTcpClient : ITcpClient
     {
         public bool IsConnected { get; set; } = false;
@@ -99,14 +102,21 @@ namespace NetSdrClientAppTests
             IsConnected = true; 
         }
         public void Disconnect() { }
+        
         public Task SendMessageAsync(byte[] data)
         {
             SendMessageAsyncCallCount++;
+            // Симулируем, что мы "отправили" сообщение и "получили" ответ
+            // Это разблокирует 'await responseTask' в NetSdrClient.cs
+            // Мы используем Task.Run, чтобы это произошло в другом потоке,
+            // как в реальной сети, и немедленно вернуть управление.
+            Task.Run(() => MessageReceived?.Invoke(this, new byte[] { 0x01 })); 
             return Task.CompletedTask;
         }
         public Task SendMessageAsync(string str)
         {
             SendMessageAsyncCallCount++;
+            Task.Run(() => MessageReceived?.Invoke(this, new byte[] { 0x01 })); 
             return Task.CompletedTask;
         }
     }
@@ -126,7 +136,7 @@ namespace NetSdrClientAppTests
             StopListeningCallCount++;
         }
         
-        // <--- ИСПРАВЛЕНИЕ 1 (CS0535): Добавлен недостающий метод Exit()
+        // <--- ИСПРАВЛЕНИЕ (CS0535): Добавлен недостающий метод Exit()
         public void Exit() { }
     }
     
@@ -145,8 +155,6 @@ namespace NetSdrClientAppTests
             _client = new NetSdrClient(_stubTcpClient, _stubUdpClient);
         }
 
-        // <--- ИСПРАВЛЕНИЕ 2: Убран синтаксис Moq (.Verify)
-        
         [Fact]
         public async Task ConnectAsync_WhenNotConnected_ShouldCallTcpConnectAndSendMessages()
         {
