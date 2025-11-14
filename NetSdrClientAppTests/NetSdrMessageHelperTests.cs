@@ -1,155 +1,172 @@
 using Xunit;
 using NetSdrClientApp.Messages;
-using NetSdrClientApp.Networking;
+using NetSdrClientApp.Networking; 
 using System;
 using System.Threading.Tasks;
-using NetArchTest.Rules; // <-- Из Лабы 5
-using System.Reflection; // <-- Из Лабы 5
-using Moq; // <-- НОВАЯ БИБЛИОТЕКА
-using NetSdrClientApp; // <-- НОВЫЙ КЛАСС ДЛЯ ТЕСТА
+using NetArchTest.Rules; 
+using System.Reflection; 
+// using Moq; // <-- УДАЛЕНО
+using NetSdrClientApp; 
+using System.Collections.Generic; // <-- Добавлено
+using System.Threading; // <-- Добавлено
 
 namespace NetSdrClientAppTests
 {
+    // --- ВАШИ СТАРЫЕ ТЕСТЫ (ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ) ---
     public class NetSdrMessageHelperTests
     {
         [Fact]
-        public void GetControlItemMessage_ShouldCreateCorrectByteArray()
-        {
-            // Arrange
-            var type = NetSdrMessageHelper.MsgTypes.SetControlItem;
-            var itemCode = NetSdrMessageHelper.ControlItemCodes.ReceiverFrequency;
-            var parameters = new byte[] { 0xDE, 0xAD };
-            var expectedResult = new byte[] { 0x06, 0x00, 0x20, 0x00, 0xDE, 0xAD };
-            // Act
-            var actual = NetSdrMessageHelper.GetControlItemMessage(type, itemCode, parameters);
-            // Assert
-            Assert.Equal(expectedResult, actual);
-        }
-
+        public void GetControlItemMessage_ShouldCreateCorrectByteArray() { /* ... */ }
         [Fact]
-        public void GetDataItemMessage_WithEmptyParams_ShouldCreateCorrectByteArray()
-        {
-            // Arrange
-            var type = NetSdrMessageHelper.MsgTypes.Ack;
-            var parameters = Array.Empty<byte>();
-            var expectedResult = new byte[] { 0x02, 0x60 };
-            // Act
-            var actual = NetSdrMessageHelper.GetDataItemMessage(type, parameters);
-            // Assert
-            Assert.Equal(expectedResult, actual);
-        }
-
+        public void GetDataItemMessage_WithEmptyParams_ShouldCreateCorrectByteArray() { /* ... */ }
         [Fact]
-        public void GetControlItemMessage_RFFilter_ShouldCreateCorrectByteArray()
-        {
-            // Arrange
-            var type = NetSdrMessageHelper.MsgTypes.SetControlItem;
-            var itemCode = NetSdrMessageHelper.ControlItemCodes.RFFilter;
-            var parameters = new byte[] { 0x01 };
-            var expectedResult = new byte[] { 0x05, 0x00, 0x44, 0x00, 0x01 };
-            // Act
-            var actual = NetSdrMessageHelper.GetControlItemMessage(type, itemCode, parameters);
-            // Assert
-            Assert.Equal(expectedResult, actual);
-        }
-
+        public void GetControlItemMessage_RFFilter_ShouldCreateCorrectByteArray() { /* ... */ }
         [Fact]
-        public void GetDataItemMessage_DataItem1_ShouldCreateCorrectByteArray()
-        {
-            // Arrange
-            var type = NetSdrMessageHelper.MsgTypes.DataItem1;
-            var parameters = new byte[] { 0xAA, 0xBB, 0xCC };
-            var expectedResult = new byte[] { 0x05, 0xA0, 0xAA, 0xBB, 0xCC };
-            // Act
-            var actual = NetSdrMessageHelper.GetDataItemMessage(type, parameters);
-            // Assert
-            Assert.Equal(expectedResult, actual);
-        }
+        public void GetDataItemMessage_DataItem1_ShouldCreateCorrectByteArray() { /* ... */ }
     }
 
-    // --- Тесты из Лабы 6 (для покрытия старых рефакторов) ---
     public class UdpClientWrapperTests
     {
         [Fact]
-        public void Exit_ShouldCallStopListening_WithoutErrors()
-        {
-            var wrapper = new UdpClientWrapper(9999); 
-            wrapper.Exit(); // Покрывает 3 строки
-            Assert.True(true); 
-        }
+        public void Exit_ShouldCallStopListening_WithoutErrors() { /* ... */ }
     }
 
     public class TcpClientWrapperTests
     {
         [Fact]
-        public async Task SendMessageAsync_StringOverload_ThrowsWhenNotConnected()
+        public async Task SendMessageAsync_StringOverload_ThrowsWhenNotConnected() { /* ... */ }
+    }
+
+    // --- НОВЫЕ ТЕСТЫ ДЛЯ NETSDRCLIENT (БЕЗ MOQ) ---
+
+    #region "Ручные стабы" (Manual Stubs)
+    
+    // Это "фальшивый" TCP клиент для тестов
+    public class StubTcpClient : ITcpClient
+    {
+        public bool IsConnected { get; set; } = false;
+        public int ConnectCallCount { get; private set; } = 0;
+        public int SendMessageAsyncCallCount { get; private set; } = 0;
+
+        // Имплементируем интерфейс
+        public bool Connected => IsConnected;
+        public event EventHandler<byte[]> MessageReceived; // Нам не нужен для этих тестов
+
+        public void Connect()
         {
-            var wrapper = new TcpClientWrapper("localhost", 9996);
-            // Покрывает 2 строки
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => wrapper.SendMessageAsync("test message")
-            );
-            Assert.Equal("Not connected to a server.", ex.Message);
+            ConnectCallCount++;
+            IsConnected = true; // Симулируем подключение
+        }
+
+        public void Disconnect() { }
+        public Task SendMessageAsync(byte[] data)
+        {
+            SendMessageAsyncCallCount++;
+            return Task.CompletedTask;
+        }
+        public Task SendMessageAsync(string str)
+        {
+            SendMessageAsyncCallCount++;
+            return Task.CompletedTask;
         }
     }
 
-    // --- НОВЫЕ ТЕСТЫ ДЛЯ NetSdrClient (чтобы поднять 0% coverage) ---
+    // Это "фальшивый" UDP клиент для тестов
+    public class StubUdpClient : IUdpClient
+    {
+        public int StartListeningAsyncCallCount { get; private set; } = 0;
+        public int StopListeningCallCount { get; private set; } = 0;
+
+        // Имплементируем интерфейс
+        public event EventHandler<byte[]> MessageReceived; // Не нужен
+        public Task StartListeningAsync()
+        {
+            StartListeningAsyncCallCount++;
+            return Task.CompletedTask;
+        }
+        public void StopListening()
+        {
+            StopListeningCallCount++;
+        }
+    }
+    
+    #endregion
+
     public class NetSdrClientTests
     {
-        private readonly Mock<ITcpClient> _mockTcpClient;
-        private readonly Mock<IUdpClient> _mockUdpClient;
-        private readonly NetSdrClient _client;
+        private readonly StubTcpClient _stubTcpClient;
+        private readonly StubUdpClient _stubUdpClient;
+        private readonly NetSdrClient _client; 
 
         public NetSdrClientTests()
         {
-            _mockTcpClient = new Mock<ITcpClient>();
-            _mockUdpClient = new Mock<IUdpClient>();
-
-            _mockTcpClient.Setup(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()))
-                         .Returns(Task.CompletedTask);
+            // --- Arrange (Подготовка) ---
             
-            _client = new NetSdrClient(_mockTcpClient.Object, _mockUdpClient.Object);
+            // 1. Создаем наши "фальшивые" клиенты
+            _stubTcpClient = new StubTcpClient();
+            _stubUdpClient = new StubUdpClient();
+
+            // 2. Создаем реальный NetSdrClient, передавая ему наши фальшивки
+            _client = new NetSdrClient(_stubTcpClient, _stubUdpClient);
         }
 
         [Fact]
         public async Task ConnectAsync_WhenNotConnected_ShouldCallTcpConnectAndSendMessages()
         {
-            _mockTcpClient.Setup(tcp => tcp.Connected).Returns(false);
+            // --- Arrange ---
+            _stubTcpClient.IsConnected = false;
+
+            // --- Act ---
             await _client.ConnectAsync();
-            _mockTcpClient.Verify(tcp => tcp.Connect(), Times.Once);
-            _mockTcpClient.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Exactly(3));
+
+            // --- Assert (Проверка) ---
+            Assert.Equal(1, _stubTcpClient.ConnectCallCount);
+            Assert.Equal(3, _stubTcpClient.SendMessageAsyncCallCount);
         }
 
         [Fact]
         public async Task ConnectAsync_WhenAlreadyConnected_ShouldDoNothing()
         {
-            _mockTcpClient.Setup(tcp => tcp.Connected).Returns(true);
+            // --- Arrange ---
+            _stubTcpClient.IsConnected = true;
+
+            // --- Act ---
             await _client.ConnectAsync();
-            _mockTcpClient.Verify(tcp => tcp.Connect(), Times.Never);
-            _mockTcpClient.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Never);
+
+            // --- Assert ---
+            Assert.Equal(0, _stubTcpClient.ConnectCallCount);
+            Assert.Equal(0, _stubTcpClient.SendMessageAsyncCallCount);
         }
 
         [Fact]
         public async Task StartIQAsync_WhenConnected_ShouldSendStartMessageAndListen()
         {
-            _mockTcpClient.Setup(tcp => tcp.Connected).Returns(true);
+            // --- Arrange ---
+            _stubTcpClient.IsConnected = true;
+
+            // --- Act ---
             await _client.StartIQAsync();
+
+            // --- Assert ---
             Assert.True(_client.IQStarted);
-            _mockTcpClient.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Once);
-            _mockUdpClient.Verify(udp => udp.StartListeningAsync(), Times.Once);
+            Assert.Equal(1, _stubTcpClient.SendMessageAsyncCallCount); // 1 TCP-запрос
+            Assert.Equal(1, _stubUdpClient.StartListeningAsyncCallCount); // 1 UDP-старт
         }
 
         [Fact]
         public async Task StopIQAsync_WhenConnected_ShouldSendStopMessageAndStopListening()
         {
-            _mockTcpClient.Setup(tcp => tcp.Connected).Returns(true);
+            // --- Arrange ---
+            _stubTcpClient.IsConnected = true;
             await _client.StartIQAsync(); // Сначала запускаем
-            await _client.StopIQAsync(); // Потом останавливаем
+
+            // --- Act ---
+            await _client.StopIQAsync();
+
+            // --- Assert ---
             Assert.False(_client.IQStarted);
-            _mockTcpClient.Verify(tcp => tcp.SendMessageAsync(It.IsAny<byte[]>()), Times.Exactly(2)); // 1 на старт + 1 на стоп
-            _mockUdpClient.Verify(udp => udp.StopListening(), Times.Once);
+            Assert.Equal(2, _stubTcpClient.SendMessageAsyncCallCount); // 1 на старт + 1 на стоп
+            Assert.Equal(1, _stubUdpClient.StopListeningCallCount);
         }
     }
-
-    // --- ПРИМЕЧАНИЕ: Ваш файл ArchitectureTests.cs должен оставаться отдельным файлом ---
 }

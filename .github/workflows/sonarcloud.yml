@@ -15,65 +15,49 @@ jobs:
     name: Sonar Check
     runs-on: windows-latest 
     steps:
-      # 0) Checkout
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
 
-      # 1) Setup .NET 8
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # 2) BEGIN SonarScanner
+      # 1) BEGIN: SonarScanner for .NET
       - name: SonarScanner Begin
         run: |
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
-          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.xml,**/TestResults/coverage-echo.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**,**/*.csproj"
+          #
+          # <--- Ищем ОДИН отчет (это правильно)
+          #
+          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**,**/*.csproj"
         shell: pwsh
 
-      # 3) Restore & Build
+      # 2) BUILD
       - name: Restore
         run: dotnet restore NetSdrClient.sln
       - name: Build
         run: dotnet build NetSdrClient.sln -c Release --no-restore
 
-      # 4) Create TestResults folders (Coverlet fix)
-      - name: Create TestResults directories
-        run: |
-          mkdir -Force .\NetSdrClientAppTests\TestResults
-          mkdir -Force .\EchoServer.Tests\TestResults
-        shell: pwsh
-
-      # 5) Run Tests with Coverage
+      # 3) TEST & COVERAGE
       - name: Tests with coverage (OpenCover)
         run: |
           #
-          # <--- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: Добавлена "двойная страховка" /p:MaxCpuCount=1
+          # <--- ФИНАЛЬНАЯ ВЕРСИЯ:
+          # 1. Запускаем на уровне .sln
+          # 2. /p:CoverletExcludeByAttribute (чтобы [ExcludeFromCodeCoverage] заработал)
           #
-          
-          # NetSdrClientAppTests
-          dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
-            --settings "ci.runsettings" `
+          dotnet test NetSdrClient.sln -c Release --no-build `
             /p:CollectCoverage=true `
             /p:CoverletOutput=TestResults/coverage.xml `
             /p:CoverletOutputFormat=opencover `
-            /p:CoverletExcludeByAttribute="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" `
-            /p:MaxCpuCount=1
-          
-          # EchoServer.Tests
-          dotnet test EchoServer.Tests/EchoServer.Tests.csproj -c Release --no-build `
-            --settings "ci.runsettings" `
-            /p:CollectCoverage=true `
-            /p:CoverletOutput=TestResults/coverage-echo.xml `
-            /p:CoverletOutputFormat=opencover `
-            /p:CoverletExcludeByAttribute="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" `
-            /p:MaxCpuCount=1
+            /p:CoverletExcludeByAttribute="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute"
+            
         shell: pwsh
 
-      # 6) END SonarScanner
+      # 4) END: SonarScanner
       - name: SonarScanner End
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         shell: pwsh
