@@ -60,6 +60,8 @@ namespace NetSdrClientApp.Networking
                 _stream?.Close();
                 _tcpClient?.Close();
 
+                _cts?.Dispose(); // <--- ВОТ ИСПРАВЛЕНИЕ "BLOCKER" БАГА
+
                 _cts = null;
                 _tcpClient = null;
                 _stream = null;
@@ -70,6 +72,7 @@ namespace NetSdrClientApp.Networking
                 Console.WriteLine("No active connection to disconnect.");
             }
         }
+
 
         // --- ВИПРАВЛЕННЯ ДУБЛЮВАННЯ ---
         public async Task SendMessageAsync(byte[] data)
