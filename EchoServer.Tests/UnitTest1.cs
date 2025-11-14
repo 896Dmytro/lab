@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using EchoTspServer; // <--- ВОТ ИСПРАВЛЕНИЕ
+using EchoTspServer; // <--- ИСПРАВЛЕНИЕ 1 (Добавлен using)
 
 namespace EchoServer.Tests
 {
@@ -14,11 +14,8 @@ namespace EchoServer.Tests
         public async Task ProcessClientStreamAsync_ShouldEchoData_WhenDataIsSent()
         {
             // --- Arrange (Подготовка) ---
-            
-            // Мы убрали 'global::' хак
             var logger = new NullLogger<MyEchoServer>();
             var server = new MyEchoServer(1234, logger);
-            
             var testMessage = "Hello World";
             var testBytes = Encoding.UTF8.GetBytes(testMessage);
 

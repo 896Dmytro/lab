@@ -7,103 +7,102 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis; 
-using System.Security.Cryptography; 
+// using System.Diagnostics.CodeAnalysis; // Атрибуты не нужны
+using System.Security.Cryptography;
 
-namespace EchoTspServer; // <--- ВОТ ИСПРАВЛЕНИЕ
-
-[ExcludeFromCodeCoverage] 
-public class Program
+namespace EchoTspServer // <--- ИСПРАВЛЕНИЕ 1 (Namespace)
 {
-    public static async Task Main(string[] args)
+    public static class Program // <--- ИСПРАВЛЕНИЕ 2 (static class)
     {
-        using var loggerFactory = LoggerFactory.Create(builder =>
+        public static async Task Main(string[] args)
         {
-            builder.AddConsole();
-        });
-        
-        ILogger<MyEchoServer> logger = loggerFactory.CreateLogger<MyEchoServer>();
-        MyEchoServer server = new MyEchoServer(5000, logger);
-        
-        _ = Task.Run(() => server.StartAsync()); 
-
-        string host = "127.0.0.1";
-        int port = 60000;
-        int intervalMilliseconds = 5000;
-
-        using (var sender = new UdpTimedSender(host, port))
-        {
-            Console.WriteLine("Press any key to stop sending...");
-            sender.StartSending(intervalMilliseconds);
-
-            Console.WriteLine("Press 'q' to quit...");
-            while (Console.ReadKey(intercept: true).Key != ConsoleKey.Q)
+            using var loggerFactory = LoggerFactory.Create(builder =>
             {
-                // Wait
+                builder.AddConsole();
+            });
+
+            ILogger<MyEchoServer> logger = loggerFactory.CreateLogger<MyEchoServer>();
+            MyEchoServer server = new MyEchoServer(5000, logger);
+
+            _ = Task.Run(() => server.StartAsync());
+
+            string host = "127.0.0.1";
+            int port = 60000;
+            int intervalMilliseconds = 5000;
+
+            using (var sender = new UdpTimedSender(host, port))
+            {
+                Console.WriteLine("Press any key to stop sending...");
+                sender.StartSending(intervalMilliseconds);
+
+                Console.WriteLine("Press 'q' to quit...");
+                while (Console.ReadKey(intercept: true).Key != ConsoleKey.Q)
+                {
+                    // Wait
+                }
+
+                sender.StopSending();
+                server.Stop();
+                Console.WriteLine("Sender stopped.");
             }
-
-            sender.StopSending();
-            server.Stop();
-            Console.WriteLine("Sender stopped.");
         }
     }
-}
 
-[ExcludeFromCodeCoverage] 
-public class UdpTimedSender : IDisposable
-{
-    private readonly string _host;
-    private readonly int _port;
-    private readonly UdpClient _udpClient;
-    private Timer _timer;
-
-    public UdpTimedSender(string host, int port)
+    public class UdpTimedSender : IDisposable
     {
-        _host = host;
-        _port = port;
-        _udpClient = new UdpClient();
-    }
+        private readonly string _host; // <--- ИСПРАВЛЕНИЕ 3 (Readonly)
+        private readonly int _port; // <--- ИСПРАВЛЕНИЕ 4 (Readonly)
+        private readonly UdpClient _udpClient; // <--- ИСПРАВЛЕНИЕ 5 (Readonly)
+        private Timer _timer;
 
-    public void StartSending(int intervalMilliseconds)
-    {
-        if (_timer != null)
-            throw new InvalidOperationException("Sender is already running.");
-
-        _timer = new Timer(SendMessageCallback, null, 0, intervalMilliseconds);
-    }
-
-    ushort i = 0;
-
-    private void SendMessageCallback(object state)
-    {
-        try
+        public UdpTimedSender(string host, int port)
         {
-            byte[] samples = new byte[1024];
-            RandomNumberGenerator.Fill(samples);
-            
-            i++;
-
-            byte[] msg = (new byte[] { 0x04, 0x04 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
-            var endpoint = new IPEndPoint(IPAddress.Parse(_host), _port);
-
-            _udpClient.Send(msg, msg.Length, endpoint);
-            Console.WriteLine($"Message sent to {_host}:{_port} ");
+            _host = host;
+            _port = port;
+            _udpClient = new UdpClient();
         }
-        catch (Exception ex)
+
+        public void StartSending(int intervalMilliseconds)
         {
-            Console.WriteLine($"Error sending message: {ex.Message}");
-        }
-    }
+            if (_timer != null)
+                throw new InvalidOperationException("Sender is already running.");
 
-    public void StopSending()
-    {
-        _timer?.Dispose();
-        _timer = null;
-    }
-    
-    public void Dispose()
-    {
-        StopSending();
-        _udpClient.Dispose();
+            _timer = new Timer(SendMessageCallback, null, 0, intervalMilliseconds);
+        }
+
+        ushort i = 0;
+
+        private void SendMessageCallback(object state)
+        {
+            try
+            {
+                byte[] samples = new byte[1024];
+                RandomNumberGenerator.Fill(samples);
+
+                i++;
+
+                byte[] msg = (new byte[] { 0x04, 0x04 }).Concat(BitConverter.GetBytes(i)).Concat(samples).ToArray();
+                var endpoint = new IPEndPoint(IPAddress.Parse(_host), _port);
+
+                _udpClient.Send(msg, msg.Length, endpoint);
+                Console.WriteLine($"Message sent to {_host}:{_port} ");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending message: {ex.Message}");
+            }
+        }
+
+        public void StopSending()
+        {
+            _timer?.Dispose();
+            _timer = null;
+        }
+
+        public void Dispose()
+        {
+            StopSending();
+            _udpClient.Dispose();
+        }
     }
 }

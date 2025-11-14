@@ -5,95 +5,92 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis; 
+// using System.Diagnostics.CodeAnalysis; // Атрибуты не нужны
 
-namespace EchoTspServer; // <--- ВОТ ИСПРАВЛЕНИЕ
-
-public class MyEchoServer
+namespace EchoTspServer // <--- ИСПРАВЛЕНИЕ 1 (Namespace)
 {
-    private readonly int _port;
-    private readonly ILogger<MyEchoServer> _logger;
-    private TcpListener _listener;
-    private CancellationTokenSource _cancellationTokenSource;
-
-    [ExcludeFromCodeCoverage] 
-    public MyEchoServer(int port, ILogger<MyEchoServer> logger)
+    public class MyEchoServer
     {
-        _port = port;
-        _logger = logger;
-        _cancellationTokenSource = new CancellationTokenSource();
-    }
+        private readonly int _port; // <--- ИСПРАВЛЕНИЕ 2 (Readonly)
+        private readonly ILogger<MyEchoServer> _logger; // <--- ИСПРАВЛЕНИЕ 3 (Readonly)
+        private TcpListener _listener;
+        private CancellationTokenSource _cancellationTokenSource;
 
-    [ExcludeFromCodeCoverage] 
-    public async Task StartAsync()
-    {
-        _listener = new TcpListener(IPAddress.Any, _port);
-        _listener.Start();
-        _logger.LogInformation($"Server started on port {_port}.");
+        public MyEchoServer(int port, ILogger<MyEchoServer> logger)
+        {
+            _port = port;
+            _logger = logger;
+            _cancellationTokenSource = new CancellationTokenSource();
+        }
 
-        while (!_cancellationTokenSource.Token.IsCancellationRequested)
+        public async Task StartAsync()
+        {
+            _listener = new TcpListener(IPAddress.Any, _port);
+            _listener.Start();
+            _logger.LogInformation($"Server started on port {_port}.");
+
+            while (!_cancellationTokenSource.Token.IsCancellationRequested)
+            {
+                try
+                {
+                    TcpClient client = await _listener.AcceptTcpClientAsync();
+                    _logger.LogInformation("Client connected.");
+
+                    _ = HandleClientAsync(client, _cancellationTokenSource.Token);
+                }
+                catch (ObjectDisposedException)
+                {
+                    break;
+                }
+            }
+            _logger.LogInformation("Server shutdown.");
+        }
+
+        private async Task HandleClientAsync(TcpClient client, CancellationToken token)
         {
             try
             {
-                TcpClient client = await _listener.AcceptTcpClientAsync();
-                _logger.LogInformation("Client connected.");
-                
-                _ = HandleClientAsync(client, _cancellationTokenSource.Token);
+                using (NetworkStream stream = client.GetStream())
+                {
+                    await ProcessClientStreamAsync(stream, token);
+                }
             }
-            catch (ObjectDisposedException)
+            catch (Exception ex)
             {
-                break;
+                _logger.LogError(ex, "Error in HandleClientAsync");
             }
-        }
-        _logger.LogInformation("Server shutdown.");
-    }
-
-    [ExcludeFromCodeCoverage] 
-    private async Task HandleClientAsync(TcpClient client, CancellationToken token)
-    {
-        try
-        {
-            using (NetworkStream stream = client.GetStream())
+            finally
             {
-                await ProcessClientStreamAsync(stream, token);
+                client.Close();
+                _logger.LogInformation("Client disconnected.");
             }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in HandleClientAsync");
-        }
-        finally
-        {
-            client.Close();
-            _logger.LogInformation("Client disconnected.");
-        }
-    }
 
-    public async Task ProcessClientStreamAsync(Stream stream, CancellationToken token)
-    {
-        byte[] buffer = new byte[8192];
-        int bytesRead;
-
-        try
+        public async Task ProcessClientStreamAsync(Stream stream, CancellationToken token)
         {
-            while (!token.IsCancellationRequested && (bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+
+            try
             {
-                await stream.WriteAsync(buffer, 0, bytesRead, token);
-                _logger.LogInformation($"Echoed {bytesRead} bytes to the client.");
+                while (!token.IsCancellationRequested && (bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length, token)) > 0)
+                {
+                    await stream.WriteAsync(buffer, 0, bytesRead, token);
+                    _logger.LogInformation($"Echoed {bytesRead} bytes to the client.");
+                }
+            }
+            catch (Exception ex) when (!(ex is OperationCanceledException))
+            {
+                _logger.LogError(ex, "Error during stream processing");
             }
         }
-        catch (Exception ex) when (!(ex is OperationCanceledException))
-        {
-            _logger.LogError(ex, "Error during stream processing");
-        }
-    }
 
-    [ExcludeFromCodeCoverage] 
-    public void Stop()
-    {
-        _cancellationTokenSource.Cancel();
-        _listener.Stop();
-        _cancellationTokenSource.Dispose();
-        _logger.LogInformation("Server stopped.");
+        public void Stop()
+        {
+            _cancellationTokenSource.Cancel();
+            _listener.Stop();
+            _cancellationTokenSource.Dispose();
+            _logger.LogInformation("Server stopped.");
+        }
     }
 }
