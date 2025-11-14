@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
   <RunConfiguration>
+    <DisableParallelization>True</DisableParallelization>
+    
     <MaxCpuCount>1</MaxCpuCount>
   </RunConfiguration>
+  
+  <xUnit>
+    <ParallelizeTestCollections>false</ParallelizeTestCollections>
+  </xUnit>
 </RunSettings>
