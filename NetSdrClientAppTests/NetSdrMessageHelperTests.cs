@@ -5,14 +5,13 @@ using System;
 using System.Threading.Tasks;
 using NetArchTest.Rules; 
 using System.Reflection; 
-// using Moq; // <-- УДАЛЕНО
 using NetSdrClientApp; 
 using System.Collections.Generic;
 using System.Threading; 
 
 namespace NetSdrClientAppTests
 {
-    // --- ВАШИ СТАРЫЕ ТЕСТЫ (ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ) ---
+    // --- ВАШІ СТАРІ ТЕСТИ (ОСТАЮТЬСЯ БЕЗ ІЗМІН) ---
     public class NetSdrMessageHelperTests
     {
         [Fact]
@@ -82,9 +81,9 @@ namespace NetSdrClientAppTests
         }
     }
 
-    // --- НОВЫЕ ТЕСТЫ ДЛЯ NETSDRCLIENT (БЕЗ MOQ) ---
+    // --- НОВІ ТЕСТИ ДЛЯ NETSDRCLIENT (БЕЗ MOQ) ---
 
-    #region "Ручные стабы" (Manual Stubs)
+    #region "Ручні стаби" (Manual Stubs)
     
     //
     // <--- ВОТ ИСПРАВЛЕНИЕ "ЗАВИСАНИЯ" (HANG)
@@ -103,20 +102,18 @@ namespace NetSdrClientAppTests
         }
         public void Disconnect() { }
         
+        // Коли SendMessageAsync викликається...
         public Task SendMessageAsync(byte[] data)
         {
             SendMessageAsyncCallCount++;
-            // Симулируем, что мы "отправили" сообщение и "получили" ответ
-            // Это разблокирует 'await responseTask' в NetSdrClient.cs
-            // Мы используем Task.Run, чтобы это произошло в другом потоке,
-            // как в реальной сети, и немедленно вернуть управление.
-            Task.Run(() => MessageReceived?.Invoke(this, new byte[] { 0x01 })); 
+            // ...негайно симулюємо відповідь, щоб "розблокувати" SendTcpRequest
+            MessageReceived?.Invoke(this, new byte[] { 0x01 }); 
             return Task.CompletedTask;
         }
         public Task SendMessageAsync(string str)
         {
             SendMessageAsyncCallCount++;
-            Task.Run(() => MessageReceived?.Invoke(this, new byte[] { 0x01 })); 
+            MessageReceived?.Invoke(this, new byte[] { 0x01 }); 
             return Task.CompletedTask;
         }
     }
@@ -136,7 +133,6 @@ namespace NetSdrClientAppTests
             StopListeningCallCount++;
         }
         
-        // <--- ИСПРАВЛЕНИЕ (CS0535): Добавлен недостающий метод Exit()
         public void Exit() { }
     }
     
@@ -154,7 +150,7 @@ namespace NetSdrClientAppTests
             _stubUdpClient = new StubUdpClient();
             _client = new NetSdrClient(_stubTcpClient, _stubUdpClient);
         }
-
+        
         [Fact]
         public async Task ConnectAsync_WhenNotConnected_ShouldCallTcpConnectAndSendMessages()
         {
