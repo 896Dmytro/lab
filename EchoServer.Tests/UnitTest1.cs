@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using EchoTspServer; // <--- ВОЗВРАЩАЕМ
+using EchoTspServer; // <--- ВАЖЛИВО
 
 namespace EchoServer.Tests
 {

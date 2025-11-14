@@ -7,12 +7,12 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis; // <--- ВОЗВРАЩАЕМ
+using System.Diagnostics.CodeAnalysis; // <--- ВАЖЛИВО
 using System.Security.Cryptography; 
 
-namespace EchoTspServer // <--- ОСТАВЛЯЕМ
+namespace EchoTspServer // <--- ВАЖЛИВО
 {
-    [ExcludeFromCodeCoverage] // <--- ВОЗВРАЩАЕМ
+    [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
     public static class Program 
     {
         public static async Task Main(string[] args)
@@ -49,12 +49,12 @@ namespace EchoTspServer // <--- ОСТАВЛЯЕМ
         }
     }
 
-    [ExcludeFromCodeCoverage] // <--- ВОЗВРАЩАЕМ
+    [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
     public class UdpTimedSender : IDisposable
     {
-        private readonly string _host; // <--- ОСТАВЛЯЕМ
-        private readonly int _port; // <--- ОСТАВЛЯЕМ
-        private readonly UdpClient _udpClient; // <--- ОСТАВЛЯЕМ
+        private readonly string _host; 
+        private readonly int _port; 
+        private readonly UdpClient _udpClient; 
         private Timer _timer;
 
         public UdpTimedSender(string host, int port)

@@ -5,18 +5,18 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis; // <--- ВОЗВРАЩАЕМ
+using System.Diagnostics.CodeAnalysis; // <--- ВАЖЛИВО
 
-namespace EchoTspServer // <--- ОСТАВЛЯЕМ
+namespace EchoTspServer // <--- ВАЖЛИВО
 {
     public class MyEchoServer
     {
-        private readonly int _port; // <--- ОСТАВЛЯЕМ
-        private readonly ILogger<MyEchoServer> _logger; // <--- ОСТАВЛЯЕМ
+        private readonly int _port; 
+        private readonly ILogger<MyEchoServer> _logger; 
         private TcpListener _listener;
         private CancellationTokenSource _cancellationTokenSource;
 
-        [ExcludeFromCodeCoverage] // <--- ВОЗВРАЩАЕМ
+        [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
         public MyEchoServer(int port, ILogger<MyEchoServer> logger)
         {
             _port = port;
@@ -24,7 +24,7 @@ namespace EchoTspServer // <--- ОСТАВЛЯЕМ
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
-        [ExcludeFromCodeCoverage] // <--- ВОЗВРАЩАЕМ
+        [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
         public async Task StartAsync()
         {
             _listener = new TcpListener(IPAddress.Any, _port);
@@ -48,7 +48,7 @@ namespace EchoTspServer // <--- ОСТАВЛЯЕМ
             _logger.LogInformation("Server shutdown.");
         }
 
-        [ExcludeFromCodeCoverage] // <--- ВОЗВРАЩАЕМ
+        [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
         private async Task HandleClientAsync(TcpClient client, CancellationToken token)
         {
             try
@@ -69,7 +69,7 @@ namespace EchoTspServer // <--- ОСТАВЛЯЕМ
             }
         }
 
-        // --- ЭТОТ МЕТОД МЫ ТЕСТИРУЕМ ---
+        // --- ЦЕЙ МЕТОД МИ ТЕСТУЄМО ---
         public async Task ProcessClientStreamAsync(Stream stream, CancellationToken token)
         {
             byte[] buffer = new byte[8192];
@@ -89,7 +89,7 @@ namespace EchoTspServer // <--- ОСТАВЛЯЕМ
             }
         }
 
-        [ExcludeFromCodeCoverage] // <--- ВОЗВРАЩАЕМ
+        [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
         public void Stop()
         {
             _cancellationTokenSource.Cancel();
