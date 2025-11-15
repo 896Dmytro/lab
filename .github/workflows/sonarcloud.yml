@@ -30,7 +30,7 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
           #
-          # <--- Ігноруємо ТІЛЬКИ тести та .csproj (це правильно)
+          # <--- Исключаем ТОЛЬКО тесты и .csproj
           #
           dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**,**/*.csproj"
         shell: pwsh
@@ -45,9 +45,9 @@ jobs:
       - name: Tests with coverage (OpenCover)
         run: |
           #
-          # <--- ФІНАЛЬНЕ ВИПРАВЛЕННЯ:
-          # 1. Запускаємо на рівні .sln
-          # 2. Додаємо /p:CoverletExcludeByAttribute (щоб [ExcludeFromCodeCoverage] спрацював)
+          # <--- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ:
+          # 1. Запускаем на уровне .sln
+          # 2. Добавляем /p:CoverletExcludeByAttribute (чтобы [ExcludeFromCodeCoverage] заработал)
           #
           dotnet test NetSdrClient.sln -c Release --no-build `
             /p:CollectCoverage=true `

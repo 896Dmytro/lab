@@ -5,9 +5,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics.CodeAnalysis; // <--- ВАЖЛИВО
+using System.Diagnostics.CodeAnalysis; // <--- ВАЖНО
 
-namespace EchoTspServer // <--- ВАЖЛИВО
+namespace EchoTspServer // <--- ВАЖНО
 {
     public class MyEchoServer
     {
@@ -16,7 +16,7 @@ namespace EchoTspServer // <--- ВАЖЛИВО
         private TcpListener _listener;
         private CancellationTokenSource _cancellationTokenSource;
 
-        [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
+        [ExcludeFromCodeCoverage] // <--- ВАЖНО
         public MyEchoServer(int port, ILogger<MyEchoServer> logger)
         {
             _port = port;
@@ -24,7 +24,7 @@ namespace EchoTspServer // <--- ВАЖЛИВО
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
-        [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
+        [ExcludeFromCodeCoverage] // <--- ВАЖНО
         public async Task StartAsync()
         {
             _listener = new TcpListener(IPAddress.Any, _port);
@@ -48,7 +48,7 @@ namespace EchoTspServer // <--- ВАЖЛИВО
             _logger.LogInformation("Server shutdown.");
         }
 
-        [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
+        [ExcludeFromCodeCoverage] // <--- ВАЖНО
         private async Task HandleClientAsync(TcpClient client, CancellationToken token)
         {
             try
@@ -69,7 +69,7 @@ namespace EchoTspServer // <--- ВАЖЛИВО
             }
         }
 
-        // --- ЦЕЙ МЕТОД МИ ТЕСТУЄМО ---
+        // --- ЭТОТ МЕТОД МЫ ТЕСТИРУЕМ ---
         public async Task ProcessClientStreamAsync(Stream stream, CancellationToken token)
         {
             byte[] buffer = new byte[8192];
@@ -89,7 +89,7 @@ namespace EchoTspServer // <--- ВАЖЛИВО
             }
         }
 
-        [ExcludeFromCodeCoverage] // <--- ВАЖЛИВО
+        [ExcludeFromCodeCoverage] // <--- ВАЖНО
         public void Stop()
         {
             _cancellationTokenSource.Cancel();
