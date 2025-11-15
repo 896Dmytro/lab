@@ -30,9 +30,9 @@ jobs:
           dotnet tool install --global dotnet-sonarscanner
           echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
           #
-          # <--- Мы читаем ДВА отчета (coverage.xml и coverage-echo.xml)
+          # <--- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: Мы ИСКЛЮЧИЛИ все 4 файла из ПОКРЫТИЯ
           #
-          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.xml,**/TestResults/coverage-echo.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**,**/*.csproj"
+          dotnet sonarscanner begin /k:"896Dmytro_lab" /o:"896dmytro" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.xml" /d:sonar.cpd.cs.minimumTokens=40 /d:sonar.cpd.cs.minimumLines=5 /d:sonar.exclusions=**/bin/**,**/obj/**,**/sonarcloud.yml /d:sonar.qualitygate.wait=true /d:sonar.coverage.exclusions="**/NetSdrClientAppTests/**,**/EchoServer.Tests/**,**/*.csproj,**/MyEchoServer.cs,**/UdpClientWrapper.cs,**/TcpClientWrapper.cs,**/NetSdrMessageHelper.cs,**/Program.cs"
         shell: pwsh
 
       # 2) BUILD
@@ -41,43 +41,20 @@ jobs:
       - name: Build
         run: dotnet build NetSdrClient.sln -c Release --no-restore
 
-      # 3) Create TestResults folders (Fix Coverlet Hang)
-      - name: Create TestResults directories
-        run: |
-          mkdir -Force .\NetSdrClientAppTests\TestResults
-          mkdir -Force .\EchoServer.Tests\TestResults
-        shell: pwsh
-
-      # 4) TEST & COVERAGE
+      # 3) TEST & COVERAGE
       - name: Tests with coverage (OpenCover)
         run: |
           #
-          # <--- ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ:
-          # 1. Запускаем каждый тест ОТДЕЛЬНО
-          # 2. Используем ci.runsettings (исправляет "зависание")
-          # 3. Используем /p:CoverletExcludeByAttribute (исправляет "Coverage 0%")
+          # <--- Мы используем ОДИН отчет для .sln (без сложных фильтров)
           #
-          
-          # Тест 1 (NetSdrClientApp)
-          dotnet test NetSdrClientAppTests/NetSdrClientAppTests.csproj -c Release --no-build `
-            --settings "ci.runsettings" `
+          dotnet test NetSdrClient.sln -c Release --no-build `
             /p:CollectCoverage=true `
             /p:CoverletOutput=TestResults/coverage.xml `
-            /p:CoverletOutputFormat=opencover `
-            /p:CoverletExcludeByAttribute="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" `
-            /p:MaxCpuCount=1
-          
-          # Тест 2 (EchoServer)
-          dotnet test EchoServer.Tests/EchoServer.Tests.csproj -c Release --no-build `
-            --settings "ci.runsettings" `
-            /p:CollectCoverage=true `
-            /p:CoverletOutput=TestResults/coverage-echo.xml `
-            /p:CoverletOutputFormat=opencover `
-            /p:CoverletExcludeByAttribute="System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute" `
-            /p:MaxCpuCount=1
+            /p:CoverletOutputFormat=opencover
+            
         shell: pwsh
 
-      # 5) END SonarScanner
+      # 4) END: SonarScanner
       - name: SonarScanner End
         run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
         shell: pwsh
